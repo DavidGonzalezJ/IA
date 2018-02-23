@@ -6,23 +6,39 @@ using UnityEngine.UI;
 
 public class PuzzleCreator : MonoBehaviour {
     public int tam;
+	[SerializeField]
+	private GameObject button;
+	[SerializeField]
+	private Transform puzzleField;
     // Use this for initialization
-    void Start () {
-        GridLayoutGroup Grid = gameObject.GetComponent<GridLayoutGroup>();
+    void Awake () {
+		GridLayoutGroup Grid = puzzleField.GetComponent<GridLayoutGroup>();
 
         if (Grid == null)
             Debug.Log("Falta script layout");
         else {
             if (tam == 0) tam = 6;
-            Grid.constraintCount = tam;
-            int pantY = 720 - tam * 20;
-            
-            Grid.cellSize.Set( pantY/tam ,pantY/tam);
+			float scale = 3.0f /(float) tam;
+			float pantY = (720 - tam * 20)/tam;
+			Debug.Log(pantY + "    " + pantY/tam);
+
+			//Transform prueba =  puzzleField.getComponent<Transform>();
+		//	prueba.localScale.Set (scale, scale, scale);// scale,scale ,scale ); //(50.0f, 50.0f);
+
+			Debug.Log("Escala: " + scale);
+			Grid.constraintCount = tam;
+
+			for (int i = 0; i < tam * tam; i++) {
+				GameObject buttonn = Instantiate(button);
+				buttonn.name = "" + i;
+				Text texto = buttonn.GetComponentInChildren<Text> ();
+				if(texto!=  null)
+					texto.text = ""+ i;
+				buttonn.transform.SetParent (puzzleField, false);
+			}
+
         }
-        for (int i = 0; i < tam * tam; i++) {
-            //UnityEngine.UI.Button Boton;
-           
-        }
+       
 	}
 	
 	// Update is called once per frame
@@ -31,4 +47,7 @@ public class PuzzleCreator : MonoBehaviour {
     //    Grid.enabled = false;
 
     }
+	public int dameTam(){
+		return tam;
+	}
 }
