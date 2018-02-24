@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class PuzzleCreator : MonoBehaviour {
     public int tam;
+    [SerializeField]
+    private Image charmander;
 	[SerializeField]
 	private GameObject button;
 	[SerializeField]
@@ -32,7 +34,8 @@ public class PuzzleCreator : MonoBehaviour {
 				GameObject buttonn = Instantiate(button);
 				buttonn.name = "" + i;
 				Text texto = buttonn.GetComponentInChildren<Text> ();
-				if(texto!=  null)
+                //Image imagen = buttonn.GetComponent<Image>();
+                if (texto!=  null)
 					texto.text = ""+ i;
 				buttonn.transform.SetParent (puzzleField, false);
 			}
