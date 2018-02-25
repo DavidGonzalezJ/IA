@@ -14,12 +14,16 @@ struct pieza{
 
 enum pos {arriba, abajo, izquierda, derecha};
 
-
-
 public class MatrizJuego : MonoBehaviour {
-    public static int tam = 3;
-    pieza[,] matriz = new pieza[tam, tam];
-    pieza hueco = new pieza(tam * tam, tam - 1, tam - 1);
+    public bool pararbarajar = true;
+    [SerializeField]
+    private GameObject Puzzle;
+    private static int tam;
+
+
+    pieza[,] matriz;
+    pieza[,] matrizSolucion;
+    pieza hueco;
 
     //Inicializa la matriz para cualquier tamaño
     void matrizInicial(){
@@ -27,11 +31,26 @@ public class MatrizJuego : MonoBehaviour {
             for (int j = 0; j < tam; j++) {
                 matriz[i, j].i = i;
                 matriz[i, j].j = j;
-                matriz[i, j].valor = i * tam + j + 1;
+                matriz[i, j].valor = i * tam + j;
             }
         }
+        matrizSolucion = matriz;
+    }
+    // Use this for initialization
+    void Start () {
+        tam = PuzzleManager.Instance.dameTam();
+        matriz = new pieza[tam, tam];
+        hueco = new pieza(tam * tam-1, tam - 1, tam - 1);
+        matrizInicial();
+
+       // Debug.Log(tam);
+    }
+    // Update is called once per frame
+    void Update () {
+        
     }
 
+   
     //Devuelve el valor de una casilla adyacente al hueco o false si no existe.
     bool dameCasilla(pos x, out int valor) {
         valor = 0;
@@ -72,36 +91,79 @@ public class MatrizJuego : MonoBehaviour {
     //Cambia el hueco por la casilla que se le indica al metodo (si no puede devuelve false)
     bool cambio(pos x) {
         int valor;
+        GameObject a, b;
+        int aI, bI;
         if (dameCasilla(x, out valor)) {
             switch (x)
             {
                 case pos.arriba:
+
+                    a = Puzzle.transform.Find(matriz[hueco.i - 1, hueco.j].valor.ToString()).gameObject;
+                    b = Puzzle.transform.Find(hueco.valor.ToString()).gameObject;
+                    aI = a.transform.GetSiblingIndex();
+                    bI = b.transform.GetSiblingIndex();
+
+
                     matriz[hueco.i - 1, hueco.j].SetIJ(hueco.i, hueco.j);
                     hueco.SetIJ(hueco.i - 1, hueco.j);
                     matriz[hueco.i, hueco.j].valor = hueco.valor;
                     matriz[hueco.i + 1, hueco.j].valor = valor;
                     matriz[hueco.i + 1, hueco.j].SetIJ(hueco.i, hueco.j);
+
+                    b.transform.SetSiblingIndex(aI);
+                    a.transform.SetSiblingIndex(bI);
+
                     break;
                 case pos.abajo:
+
+
+                    a = Puzzle.transform.Find(matriz[hueco.i + 1, hueco.j].valor.ToString()).gameObject;
+                    b = Puzzle.transform.Find(hueco.valor.ToString()).gameObject;
+                    aI = a.transform.GetSiblingIndex();
+                    bI = b.transform.GetSiblingIndex();
+
                     matriz[hueco.i + 1, hueco.j].SetIJ(hueco.i, hueco.j);
                     hueco.SetIJ(hueco.i + 1, hueco.j);
                     matriz[hueco.i, hueco.j].valor = hueco.valor;
                     matriz[hueco.i - 1, hueco.j].valor = valor;
                     matriz[hueco.i - 1, hueco.j].SetIJ(hueco.i, hueco.j);
+
+                    b.transform.SetSiblingIndex(aI);
+                    a.transform.SetSiblingIndex(bI);
+
                     break;
                 case pos.izquierda:
+
+                    a = Puzzle.transform.Find(matriz[hueco.i, hueco.j-1].valor.ToString()).gameObject;
+                    b = Puzzle.transform.Find(hueco.valor.ToString()).gameObject;
+                    aI = a.transform.GetSiblingIndex();
+                    bI = b.transform.GetSiblingIndex();
+
                     matriz[hueco.i, hueco.j - 1].SetIJ(hueco.i, hueco.j);
                     hueco.SetIJ(hueco.i, hueco.j -1);
                     matriz[hueco.i, hueco.j].valor = hueco.valor;
                     matriz[hueco.i , hueco.j + 1].valor = valor;
                     matriz[hueco.i , hueco.j + 1].SetIJ(hueco.i, hueco.j);
+
+                    b.transform.SetSiblingIndex(aI);
+                    a.transform.SetSiblingIndex(bI);
                     break;
+
                 case pos.derecha:
+
+                    a = Puzzle.transform.Find(matriz[hueco.i, hueco.j+1].valor.ToString()).gameObject;
+                    b = Puzzle.transform.Find(hueco.valor.ToString()).gameObject;
+                    aI = a.transform.GetSiblingIndex();
+                    bI = b.transform.GetSiblingIndex();
+
                     matriz[hueco.i, hueco.j + 1].SetIJ(hueco.i, hueco.j);
                     hueco.SetIJ(hueco.i, hueco.j + 1);
                     matriz[hueco.i, hueco.j].valor = hueco.valor;
                     matriz[hueco.i, hueco.j - 1].valor = valor;
                     matriz[hueco.i, hueco.j - 1].SetIJ(hueco.i, hueco.j);
+
+                    b.transform.SetSiblingIndex(aI);
+                    a.transform.SetSiblingIndex(bI);
                     break;
             }
             //Método que ilustra el cambio
@@ -110,27 +172,60 @@ public class MatrizJuego : MonoBehaviour {
         return false;
     }
 
-    public void baraja() {
-        int direccion;
-        for (int i = 0; i < 100; i++) {
-            direccion = Random.Range(0, 4);
+    IEnumerator MyMethod() {
+        Debug.Log("Before Waiting 0.2 seconds");
+        int ant=-2;
+        for (int i = 0; i < 100 && !pararbarajar; i++) {
+
+            int direccion = Random.Range(0, 4);
+            if(direccion == ant-1 || ant+1 == direccion )
+                direccion = Random.Range(0, 4);
+
+            yield return new WaitForSecondsRealtime(0.2f);
             cambio((pos)direccion);
+            ant = direccion;
         }
+        Debug.Log("After Waiting 0.2 Seconds");
+    }
+    public void baraja() {
+        StartCoroutine(MyMethod());
+        if(!pararbarajar)
+            pararbarajar = true;
+        else{
+            pararbarajar = false;
+            StartCoroutine(MyMethod());
+        }
+
     }
 
     public void resuelve1() {
+        Debug.Log("CLICK");
+    }
 
+    public void move(int Pieza, out int posi){
+        bool moved = true;
+        posi = (int)pos.arriba;
+        int Phueco = hueco.i*tam + hueco.j;
 
-
+        if((hueco.i-1) >=0 && matriz[hueco.i-1,hueco.j].valor == Pieza){
+            cambio(pos.arriba);
+            Debug.Log("MUEVE ARRIBA");
+        }else if((hueco.i+1) < tam && matriz[hueco.i+1,hueco.j].valor == Pieza){
+            cambio(pos.abajo);
+            Debug.Log("MUEVE abajo");
+        }else if((hueco.j-1) >=0 && matriz[hueco.i,hueco.j-1].valor == Pieza){
+            cambio(pos.izquierda);
+            Debug.Log("MUEVE izquierda");
+        }else if((hueco.j+1) < tam && matriz[hueco.i,hueco.j+1].valor == Pieza){
+            cambio(pos.derecha);
+            Debug.Log("MUEVE derecha");
+        }
 
     }
-        // Use this for initialization
-    void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+
+    public int dameTam(){
+        return tam;
+    }
+
+
 }

@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+//https://jdanger.com/solving-8-puzzle-with-artificial-intelligence.html
 
 public class PuzzleCreator : MonoBehaviour {
-    public int tam;
-    [SerializeField]
-    private Image charmander;
+	private int tam;
 	[SerializeField]
 	private GameObject button;
 	[SerializeField]
 	private Transform puzzleField;
     // Use this for initialization
     void Awake () {
+    	tam = PuzzleManager.Instance.dameTam();
 		GridLayoutGroup Grid = puzzleField.GetComponent<GridLayoutGroup>();
 
         if (Grid == null)
@@ -23,9 +23,6 @@ public class PuzzleCreator : MonoBehaviour {
 			float scale = 3.0f /(float) tam;
 			float pantY = (720 - tam * 20)/tam;
 			Debug.Log(pantY + "    " + pantY/tam);
-
-			//Transform prueba =  puzzleField.getComponent<Transform>();
-		//	prueba.localScale.Set (scale, scale, scale);// scale,scale ,scale ); //(50.0f, 50.0f);
 
 			Debug.Log("Escala: " + scale);
 			Grid.constraintCount = tam;
@@ -38,19 +35,18 @@ public class PuzzleCreator : MonoBehaviour {
                 if (texto!=  null)
 					texto.text = ""+ i;
 				buttonn.transform.SetParent (puzzleField, false);
+				if(i==tam*tam-1){
+					Image a = buttonn.GetComponent<Image>();
+					a.enabled = false;
+				}
 			}
 
         }
-       
 	}
-	
 	// Update is called once per frame
 	void Update () {
-      //  GridLayoutGroup Grid = gameObject.GetComponent<GridLayoutGroup>();
-    //    Grid.enabled = false;
+
 
     }
-	public int dameTam(){
-		return tam;
-	}
+
 }
