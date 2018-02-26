@@ -29,7 +29,8 @@ public class PuzzleManager : MonoBehaviour {
 	public int dameTam(){
 		return tam;	
 	}
-	public void move(int Pieza){
+	public void move(){
+        int Pieza;
 		int i;
         int.TryParse( EventSystem.current.currentSelectedGameObject.name, out Pieza );
 		matriz.move(Pieza, out i);

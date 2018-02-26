@@ -14,6 +14,11 @@ struct pieza{
 
 enum pos {arriba, abajo, izquierda, derecha};
 
+struct Estado {
+    public pieza[,] estado;
+    public pieza hueco;
+};
+
 public class MatrizJuego : MonoBehaviour {
     public bool pararbarajar = true;
     [SerializeField]
@@ -172,6 +177,67 @@ public class MatrizJuego : MonoBehaviour {
         return false;
     }
 
+    //Este cambio es para una matriz en general
+    bool cambio(pos x, pieza[,] matriz, pieza hueco)
+    {
+        int valor;
+        if (dameCasilla(x, out valor))
+        {
+            switch (x)
+            {
+                case pos.arriba:
+
+
+                    matriz[hueco.i - 1, hueco.j].SetIJ(hueco.i, hueco.j);
+                    hueco.SetIJ(hueco.i - 1, hueco.j);
+                    matriz[hueco.i, hueco.j].valor = hueco.valor;
+                    matriz[hueco.i + 1, hueco.j].valor = valor;
+                    matriz[hueco.i + 1, hueco.j].SetIJ(hueco.i, hueco.j);
+
+                    break;
+                case pos.abajo:
+
+
+                
+
+                    matriz[hueco.i + 1, hueco.j].SetIJ(hueco.i, hueco.j);
+                    hueco.SetIJ(hueco.i + 1, hueco.j);
+                    matriz[hueco.i, hueco.j].valor = hueco.valor;
+                    matriz[hueco.i - 1, hueco.j].valor = valor;
+                    matriz[hueco.i - 1, hueco.j].SetIJ(hueco.i, hueco.j);
+
+
+                    break;
+                case pos.izquierda:
+
+                   
+
+                    matriz[hueco.i, hueco.j - 1].SetIJ(hueco.i, hueco.j);
+                    hueco.SetIJ(hueco.i, hueco.j - 1);
+                    matriz[hueco.i, hueco.j].valor = hueco.valor;
+                    matriz[hueco.i, hueco.j + 1].valor = valor;
+                    matriz[hueco.i, hueco.j + 1].SetIJ(hueco.i, hueco.j);
+
+                 
+                    break;
+
+                case pos.derecha:
+
+                  
+
+                    matriz[hueco.i, hueco.j + 1].SetIJ(hueco.i, hueco.j);
+                    hueco.SetIJ(hueco.i, hueco.j + 1);
+                    matriz[hueco.i, hueco.j].valor = hueco.valor;
+                    matriz[hueco.i, hueco.j - 1].valor = valor;
+                    matriz[hueco.i, hueco.j - 1].SetIJ(hueco.i, hueco.j);
+                    break;
+            }
+            //Método que ilustra el cambio
+            return true;
+        }
+        return false;
+    }
+
     IEnumerator MyMethod() {
         Debug.Log("Before Waiting 0.2 seconds");
         int ant=-2;
@@ -187,6 +253,7 @@ public class MatrizJuego : MonoBehaviour {
         }
         Debug.Log("After Waiting 0.2 Seconds");
     }
+
     public void baraja() {
         StartCoroutine(MyMethod());
         if(!pararbarajar)
@@ -198,12 +265,59 @@ public class MatrizJuego : MonoBehaviour {
 
     }
 
-    public void resuelve1() {
+    //BFS
+    bool BFS(out List<pos> movimientos) {
+        Estado estadoAct;
+        estadoAct.estado = matriz;
+        estadoAct.hueco = hueco;
+        List<Estado> estadosAnteriores = null;
+        movimientos = null;
+        estadosAnteriores.Add(estadoAct);
+        Queue<Estado> cola = null;
+        cola.Enqueue(estadoAct);
+        while (cola.Count != 0) {
+            estadoAct = cola.Dequeue();
+            if (estadoAct.estado == matrizSolucion)
+                return true;
+            //pieza[,] aux = estadoAct;
+            for (int i = 0; i < 4; i++) {
+                Estado nuevoTablero = estadoAct;
+                cambio((pos)i, nuevoTablero.estado, nuevoTablero.hueco);
+                if (!estadosAnteriores.Contains(nuevoTablero))
+                {
+                    estadosAnteriores.Add(nuevoTablero);
+                    cola.Enqueue(nuevoTablero);
+                    movimientos.Add((pos)i);
+                }
+            }
+        }
+        return false;
+
+        //Debug.Log("RESUELTO");
+    }
+
+    //Recorre las posiciones y resuelve el puzzle
+    IEnumerator haciaSolucion() {
+        List<pos> movs = null;
+        if (!BFS(out movs)) Debug.Log("IRRESOLUBLE");
+
+        //Ahora las aplico en plan bonito
+        foreach (pos posicion in movs)
+        {
+            yield return new WaitForSecondsRealtime(0.2f);
+            cambio(posicion);
+        }
+    }
+
+    public void Resuelve1() {
+        //Primero relleno la lista de posiciones que hay que cambiar
         Debug.Log("CLICK");
+        haciaSolucion();
+
     }
 
     public void move(int Pieza, out int posi){
-        bool moved = true;
+        //bool moved = true;
         posi = (int)pos.arriba;
         int Phueco = hueco.i*tam + hueco.j;
 
