@@ -14,10 +14,7 @@ struct pieza{
 
 enum pos {arriba, abajo, izquierda, derecha};
 
-struct Estado {
-    public pieza[,] estado;
-    public pieza hueco;
-};
+
 
 public class MatrizJuego : MonoBehaviour {
     public bool pararbarajar = true;
@@ -25,6 +22,16 @@ public class MatrizJuego : MonoBehaviour {
     private GameObject Puzzle;
     private static int tam;
 
+    class Estado
+    {
+        public Estado()
+        {
+            estado = new pieza[tam, tam];
+            hueco = new pieza();
+        }
+        public pieza[,] estado;
+        public pieza hueco;
+    };
 
     pieza[,] matriz;
     pieza[,] matrizSolucion;
@@ -35,16 +42,19 @@ public class MatrizJuego : MonoBehaviour {
         for (int i = 0; i < tam; i++) {
             for (int j = 0; j < tam; j++) {
                 matriz[i, j].i = i;
+                matrizSolucion[i, j].i = i;
                 matriz[i, j].j = j;
+                matrizSolucion[i, j].j = j;
                 matriz[i, j].valor = i * tam + j;
+                matrizSolucion[i, j].valor = i * tam + j;
             }
         }
-        matrizSolucion = matriz;
     }
     // Use this for initialization
     void Start () {
         tam = PuzzleManager.Instance.dameTam();
         matriz = new pieza[tam, tam];
+        matrizSolucion = new pieza[tam, tam];
         hueco = new pieza(tam * tam-1, tam - 1, tam - 1);
         matrizInicial();
 
@@ -109,11 +119,11 @@ public class MatrizJuego : MonoBehaviour {
                     bI = b.transform.GetSiblingIndex();
 
 
-                    matriz[hueco.i - 1, hueco.j].SetIJ(hueco.i, hueco.j);
+                    //matriz[hueco.i - 1, hueco.j].SetIJ(hueco.i, hueco.j);
                     hueco.SetIJ(hueco.i - 1, hueco.j);
                     matriz[hueco.i, hueco.j].valor = hueco.valor;
                     matriz[hueco.i + 1, hueco.j].valor = valor;
-                    matriz[hueco.i + 1, hueco.j].SetIJ(hueco.i, hueco.j);
+                    //matriz[hueco.i + 1, hueco.j].SetIJ(hueco.i, hueco.j);
 
                     b.transform.SetSiblingIndex(aI);
                     a.transform.SetSiblingIndex(bI);
@@ -127,11 +137,11 @@ public class MatrizJuego : MonoBehaviour {
                     aI = a.transform.GetSiblingIndex();
                     bI = b.transform.GetSiblingIndex();
 
-                    matriz[hueco.i + 1, hueco.j].SetIJ(hueco.i, hueco.j);
+                    //matriz[hueco.i + 1, hueco.j].SetIJ(hueco.i, hueco.j);
                     hueco.SetIJ(hueco.i + 1, hueco.j);
                     matriz[hueco.i, hueco.j].valor = hueco.valor;
                     matriz[hueco.i - 1, hueco.j].valor = valor;
-                    matriz[hueco.i - 1, hueco.j].SetIJ(hueco.i, hueco.j);
+                    //matriz[hueco.i - 1, hueco.j].SetIJ(hueco.i, hueco.j);
 
                     b.transform.SetSiblingIndex(aI);
                     a.transform.SetSiblingIndex(bI);
@@ -144,11 +154,11 @@ public class MatrizJuego : MonoBehaviour {
                     aI = a.transform.GetSiblingIndex();
                     bI = b.transform.GetSiblingIndex();
 
-                    matriz[hueco.i, hueco.j - 1].SetIJ(hueco.i, hueco.j);
+                    //matriz[hueco.i, hueco.j - 1].SetIJ(hueco.i, hueco.j);
                     hueco.SetIJ(hueco.i, hueco.j -1);
                     matriz[hueco.i, hueco.j].valor = hueco.valor;
                     matriz[hueco.i , hueco.j + 1].valor = valor;
-                    matriz[hueco.i , hueco.j + 1].SetIJ(hueco.i, hueco.j);
+                    //matriz[hueco.i , hueco.j + 1].SetIJ(hueco.i, hueco.j);
 
                     b.transform.SetSiblingIndex(aI);
                     a.transform.SetSiblingIndex(bI);
@@ -161,11 +171,11 @@ public class MatrizJuego : MonoBehaviour {
                     aI = a.transform.GetSiblingIndex();
                     bI = b.transform.GetSiblingIndex();
 
-                    matriz[hueco.i, hueco.j + 1].SetIJ(hueco.i, hueco.j);
+                    //matriz[hueco.i, hueco.j + 1].SetIJ(hueco.i, hueco.j);
                     hueco.SetIJ(hueco.i, hueco.j + 1);
                     matriz[hueco.i, hueco.j].valor = hueco.valor;
                     matriz[hueco.i, hueco.j - 1].valor = valor;
-                    matriz[hueco.i, hueco.j - 1].SetIJ(hueco.i, hueco.j);
+                    //matriz[hueco.i, hueco.j - 1].SetIJ(hueco.i, hueco.j);
 
                     b.transform.SetSiblingIndex(aI);
                     a.transform.SetSiblingIndex(bI);
@@ -178,7 +188,7 @@ public class MatrizJuego : MonoBehaviour {
     }
 
     //Este cambio es para una matriz en general
-    bool cambio(pos x, pieza[,] matriz, pieza hueco)
+    bool cambio(pos x, ref pieza[,] matriz, ref pieza Hueco)
     {
         int valor;
         if (dameCasilla(x, out valor))
@@ -188,11 +198,11 @@ public class MatrizJuego : MonoBehaviour {
                 case pos.arriba:
 
 
-                    matriz[hueco.i - 1, hueco.j].SetIJ(hueco.i, hueco.j);
-                    hueco.SetIJ(hueco.i - 1, hueco.j);
-                    matriz[hueco.i, hueco.j].valor = hueco.valor;
-                    matriz[hueco.i + 1, hueco.j].valor = valor;
-                    matriz[hueco.i + 1, hueco.j].SetIJ(hueco.i, hueco.j);
+                    //matriz[hueco.i - 1, hueco.j].SetIJ(hueco.i, hueco.j);
+                    Hueco.SetIJ(Hueco.i - 1, Hueco.j);
+                    matriz[Hueco.i, Hueco.j].valor = Hueco.valor;
+                    matriz[Hueco.i + 1, Hueco.j].valor = valor;
+                    //matriz[hueco.i + 1, hueco.j].SetIJ(hueco.i, hueco.j);
 
                     break;
                 case pos.abajo:
@@ -200,11 +210,11 @@ public class MatrizJuego : MonoBehaviour {
 
                 
 
-                    matriz[hueco.i + 1, hueco.j].SetIJ(hueco.i, hueco.j);
-                    hueco.SetIJ(hueco.i + 1, hueco.j);
-                    matriz[hueco.i, hueco.j].valor = hueco.valor;
-                    matriz[hueco.i - 1, hueco.j].valor = valor;
-                    matriz[hueco.i - 1, hueco.j].SetIJ(hueco.i, hueco.j);
+                    //matriz[hueco.i + 1, hueco.j].SetIJ(hueco.i, hueco.j);
+                    Hueco.SetIJ(Hueco.i + 1, Hueco.j);
+                    matriz[Hueco.i, Hueco.j].valor = Hueco.valor;
+                    matriz[Hueco.i - 1, Hueco.j].valor = valor;
+                    //matriz[hueco.i - 1, hueco.j].SetIJ(hueco.i, hueco.j);
 
 
                     break;
@@ -212,11 +222,11 @@ public class MatrizJuego : MonoBehaviour {
 
                    
 
-                    matriz[hueco.i, hueco.j - 1].SetIJ(hueco.i, hueco.j);
-                    hueco.SetIJ(hueco.i, hueco.j - 1);
-                    matriz[hueco.i, hueco.j].valor = hueco.valor;
-                    matriz[hueco.i, hueco.j + 1].valor = valor;
-                    matriz[hueco.i, hueco.j + 1].SetIJ(hueco.i, hueco.j);
+                    //matriz[hueco.i, hueco.j - 1].SetIJ(hueco.i, hueco.j);
+                    Hueco.SetIJ(Hueco.i, Hueco.j - 1);
+                    matriz[Hueco.i, Hueco.j].valor = Hueco.valor;
+                    matriz[Hueco.i, Hueco.j + 1].valor = valor;
+                    //matriz[hueco.i, hueco.j + 1].SetIJ(hueco.i, hueco.j);
 
                  
                     break;
@@ -225,11 +235,11 @@ public class MatrizJuego : MonoBehaviour {
 
                   
 
-                    matriz[hueco.i, hueco.j + 1].SetIJ(hueco.i, hueco.j);
-                    hueco.SetIJ(hueco.i, hueco.j + 1);
-                    matriz[hueco.i, hueco.j].valor = hueco.valor;
-                    matriz[hueco.i, hueco.j - 1].valor = valor;
-                    matriz[hueco.i, hueco.j - 1].SetIJ(hueco.i, hueco.j);
+                    //matriz[hueco.i, hueco.j + 1].SetIJ(hueco.i, hueco.j);
+                    Hueco.SetIJ(Hueco.i, Hueco.j + 1);
+                    matriz[Hueco.i, Hueco.j].valor = Hueco.valor;
+                    matriz[Hueco.i, Hueco.j - 1].valor = valor;
+                    //matriz[hueco.i, hueco.j - 1].SetIJ(hueco.i, hueco.j);
                     break;
             }
             //Método que ilustra el cambio
@@ -252,6 +262,7 @@ public class MatrizJuego : MonoBehaviour {
             ant = direccion;
         }
         Debug.Log("After Waiting 0.2 Seconds");
+        Debug.Log("Terminé de barajar");
     }
 
     public void baraja() {
@@ -261,46 +272,138 @@ public class MatrizJuego : MonoBehaviour {
         else{
             pararbarajar = false;
             StartCoroutine(MyMethod());
-        }
-
+        } 
     }
+
+    //C# al igualar matrices te apunta al mismo sitio de memoria, así que hay que copiarla a lo bestia
+    void copiaMatriz(pieza[,] original, out pieza[,] copia, int tam) {
+        copia = new pieza[tam,tam];
+        for (int i = 0; i < tam; i++) {
+            for (int j = 0; j < tam; j++) {
+                copia[i, j] = original[i, j];
+            }
+        }
+    }
+    //Y lo mismo con compararla
+    bool comparaMatriz(pieza[,] m1, pieza[,] m2) {
+        for (int i = 0; i < tam; i++){
+            for (int j = 0; j < tam; j++){
+                if (m1[i, j].valor != m2[i, j].valor) return false;
+            }
+        }
+        return true;
+    }
+
 
     //BFS
     bool BFS(out List<pos> movimientos) {
-        Estado estadoAct;
+        //Estado inicial del que partimos una vez barajado el puzzle
+        Estado estadoAct = new Estado();
         estadoAct.estado = matriz;
         estadoAct.hueco = hueco;
-        List<Estado> estadosAnteriores = null;
-        movimientos = null;
+        //Creamos una lista para no volver a pasar por los mismos estados
+        List<Estado> estadosAnteriores = new List<Estado>();
         estadosAnteriores.Add(estadoAct);
-        Queue<Estado> cola = null;
+        //Guardamos los movimientos en una lista para luego replicarlos en la parte gráfica de la solución
+        movimientos = new List<pos>();
+        //La cola será necesaria para hacer el BFS
+        Queue<Estado> cola = new Queue<Estado>();
         cola.Enqueue(estadoAct);
         while (cola.Count != 0) {
             estadoAct = cola.Dequeue();
-            if (estadoAct.estado == matrizSolucion)
+            if (comparaMatriz(estadoAct.estado, matrizSolucion))
                 return true;
             //pieza[,] aux = estadoAct;
             for (int i = 0; i < 4; i++) {
-                Estado nuevoTablero = estadoAct;
-                cambio((pos)i, nuevoTablero.estado, nuevoTablero.hueco);
-                if (!estadosAnteriores.Contains(nuevoTablero))
+                //Creamos un nuevo tablero que igualamos al estado actual para
+                //cambiarlo y sacar los siguientes estados.
+                Estado nuevoTablero = new Estado();
+                copiaMatriz(estadoAct.estado, out nuevoTablero.estado, tam);
+                nuevoTablero.hueco.i = estadoAct.hueco.i;
+                nuevoTablero.hueco.j = estadoAct.hueco.j;
+                nuevoTablero.hueco.valor = estadoAct.hueco.valor;
+                if (cambio((pos)i, ref nuevoTablero.estado, ref nuevoTablero.hueco))
                 {
-                    estadosAnteriores.Add(nuevoTablero);
-                    cola.Enqueue(nuevoTablero);
-                    movimientos.Add((pos)i);
+                    //Recorremos la lista de los estados anteriores a ver si alguno coincide con el nuevo.
+                    int l = 0;
+                    bool yaEsta = false;
+                    while (l < estadosAnteriores.Count && !yaEsta)
+                    {
+                        if (comparaMatriz(estadosAnteriores[l].estado, nuevoTablero.estado))
+                            yaEsta = true;
+                        l++;
+                    }
+                    //Si el nuevo estado ya estaba registrado, se ignora
+                    if (!yaEsta)
+                    {
+                        //Si no, se mete en la lista y en la cola y se apunta el movimiento
+                        estadosAnteriores.Add(nuevoTablero);
+                        cola.Enqueue(nuevoTablero);
+                        //ESTO ESTA MAL PORQUE METE EN LA LISTA TODOS LOS MOVIMIENTOS
+                        movimientos.Add((pos)i);
+                    }
                 }
             }
         }
         return false;
+    }
 
-        //Debug.Log("RESUELTO");
+    //DFS
+    bool DFS(out List<pos> movimientos) {
+        //Estado inicial del que partimos una vez barajado el puzzle
+        Estado estadoAct = new Estado();
+        estadoAct.estado = matriz;
+        estadoAct.hueco = hueco;
+        //Creamos una lista para no volver a pasar por los mismos estados
+        List<Estado> estadosAnteriores = new List<Estado>();
+        estadosAnteriores.Add(estadoAct);
+        //Guardamos los movimientos en una lista para luego replicarlos en la parte gráfica de la solución
+        movimientos = new List<pos>();
+        //La cola será necesaria para hacer el BFS
+        Stack<Estado> pila = new Stack<Estado>();
+        pila.Push(estadoAct);
+        while (pila.Count != 0)
+        {
+            estadoAct = pila.Pop();
+            if (comparaMatriz(estadoAct.estado, matrizSolucion))
+                return true;
+            for (int i = 0; i < 4; i++)
+            {
+                //Creamos un nuevo tablero que igualamos al estado actual para
+                //cambiarlo y sacar los siguientes estados.
+                Estado nuevoTablero = new Estado();
+                copiaMatriz(estadoAct.estado, out nuevoTablero.estado, tam);
+                nuevoTablero.hueco.i = estadoAct.hueco.i;
+                nuevoTablero.hueco.j = estadoAct.hueco.j;
+                nuevoTablero.hueco.valor = estadoAct.hueco.valor;
+                if (cambio((pos)i, ref nuevoTablero.estado, ref nuevoTablero.hueco))
+                {
+                    //Recorremos la lista de los estados anteriores a ver si alguno coincide con el nuevo.
+                    int l = 0;
+                    bool yaEsta = false;
+                    while (l < estadosAnteriores.Count && !yaEsta)
+                    {
+                        if (comparaMatriz(estadosAnteriores[l].estado, nuevoTablero.estado))
+                            yaEsta = true;
+                        l++;
+                    }
+                    //Si el nuevo estado ya estaba registrado, se ignora
+                    if (!yaEsta)
+                    {
+                        //Si no, se mete en la lista y en la cola y se apunta el movimiento
+                        estadosAnteriores.Add(nuevoTablero);
+                        pila.Push(nuevoTablero);
+                        //ESTO ESTA MAL PORQUE METE EN LA LISTA TODOS LOS MOVIMIENTOS
+                        movimientos.Add((pos)i);
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     //Recorre las posiciones y resuelve el puzzle
-    IEnumerator haciaSolucion() {
-        List<pos> movs = null;
-        if (!BFS(out movs)) Debug.Log("IRRESOLUBLE");
-
+    IEnumerator haciaSolucion(List<pos> movs) {
         //Ahora las aplico en plan bonito
         foreach (pos posicion in movs)
         {
@@ -312,7 +415,10 @@ public class MatrizJuego : MonoBehaviour {
     public void Resuelve1() {
         //Primero relleno la lista de posiciones que hay que cambiar
         Debug.Log("CLICK");
-        haciaSolucion();
+        List<pos> movs = new List<pos>();
+        if (!BFS(out movs)) Debug.Log("IRRESOLUBLE");
+        else Debug.Log("RESUELTO");
+        haciaSolucion(movs);
 
     }
 
