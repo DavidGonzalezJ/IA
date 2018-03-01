@@ -22,8 +22,13 @@ public class MatrizJuego : MonoBehaviour {
     private GameObject Puzzle;
     private static int tam;
 
-    class Estado
-    {
+
+    pieza[,] matriz;
+    pieza[,] matrizSolucion;
+    pieza hueco;
+
+    class Estado{
+
         public Estado()
         {
             estado = new pieza[tam, tam];
@@ -33,13 +38,9 @@ public class MatrizJuego : MonoBehaviour {
         public pieza[,] estado;
         public pieza[,] estadoPrevio;
         public pieza hueco;
-        //public int padre;
+        public int coste;
         public pos dir;
     };
-
-    pieza[,] matriz;
-    pieza[,] matrizSolucion;
-    pieza hueco;
 
     //Inicializa la matriz para cualquier tamaño
     void matrizInicial(){
@@ -327,7 +328,7 @@ public class MatrizJuego : MonoBehaviour {
         bool encontrado = false;
         while (!encontrado && cola.Count != 0) {
             estadoAct = cola.Dequeue();
-            if (comparaMatriz(estadoAct.estado, matrizSolucion)){
+            if(estadoAct.hueco.i == tam-1 && estadoAct.hueco.j == tam-1 && comparaMatriz(estadoAct.estado, matrizSolucion)){
                 estadosAnteriores.Add(estadoAct);
                 encontrado = true;
             }
@@ -352,7 +353,8 @@ public class MatrizJuego : MonoBehaviour {
                     bool yaEsta = false;
                     while (l < estadosAnteriores.Count && !yaEsta)
                     {
-                        if (comparaMatriz(estadosAnteriores[l].estado, nuevoTablero.estado)){
+                        if (estadosAnteriores[l].hueco.i == nuevoTablero.hueco.i && estadosAnteriores[l].hueco.j == nuevoTablero.hueco.j
+                             && comparaMatriz(estadosAnteriores[l].estado, nuevoTablero.estado)){
                             yaEsta = true;
                         }
                         l++;
@@ -398,12 +400,14 @@ public class MatrizJuego : MonoBehaviour {
         //La cola será necesaria para hacer el BFS
         Stack<Estado> pila = new Stack<Estado>();
         pila.Push(estadoAct);
-        while (pila.Count != 0)
+        bool encontrado = false;
+        while (!encontrado && pila.Count != 0)
         {
             estadoAct = pila.Pop();
+
             if (comparaMatriz(estadoAct.estado, matrizSolucion))
-                return true;
-            for (int i = 0; i < 4; i++)
+                encontrado =  true;
+            for (int i = 0; !encontrado && i < 4; i++)
             {
                 //Creamos un nuevo tablero que igualamos al estado actual para
                 //cambiarlo y sacar los siguientes estados.
@@ -412,6 +416,7 @@ public class MatrizJuego : MonoBehaviour {
                 nuevoTablero.hueco.i = estadoAct.hueco.i;
                 nuevoTablero.hueco.j = estadoAct.hueco.j;
                 nuevoTablero.hueco.valor = estadoAct.hueco.valor;
+                //nuevoTablero.coste = estadoAct.coste + 1;
                 if (cambio((pos)i, ref nuevoTablero.estado, ref nuevoTablero.hueco))
                 {
                     //Recorremos la lista de los estados anteriores a ver si alguno coincide con el nuevo.
@@ -435,7 +440,8 @@ public class MatrizJuego : MonoBehaviour {
                 }
             }
         }
-        return false;
+        movimientos.ForEach(Print_);
+        return encontrado;
     }
 
     //Recorre las posiciones y resuelve el puzzle
@@ -449,18 +455,33 @@ public class MatrizJuego : MonoBehaviour {
     }
     private static void Print_(pos s)
     {
-        //Debug.Log("Movimiento"+ (int)s);
+        Debug.Log("Movimiento"+ (int)s);
     }
-    public void Resuelve1() {
+    public void Resuelve_BFS() {
         //Primero relleno la lista de posiciones que hay que cambiar
         Debug.Log("CLICK");
         List<pos> movs = new List<pos>();
         if (!BFS(out movs)) Debug.Log("IRRESOLUBLE");
         else {
-            //movs.ForEach(Print_);
-            //Debug.Log("RESUELTO"+ movs.Count);
+            movs.ForEach(Print_);
+            Debug.Log("RESUELTO"+ movs.Count);
             ///Graficos///
-            //StartCoroutine(haciaSolucion(movs));
+            StartCoroutine(haciaSolucion(movs));
+        }
+
+
+    }
+    public void Resuelve_DFS() {
+        //Primero relleno la lista de posiciones que hay que cambiar
+        Debug.Log("CLICK");
+        List<pos> movs = new List<pos>();
+        if (!DFS(out movs)) Debug.Log("IRRESOLUBLE");
+        else {
+            movs.ForEach(Print_);
+            Debug.Log("RESUELTO"+ movs.Count);
+
+            ///Graficos///
+            StartCoroutine(haciaSolucion(movs));
         }
 
 
