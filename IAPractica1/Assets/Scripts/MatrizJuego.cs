@@ -27,12 +27,14 @@ public class MatrizJuego : MonoBehaviour {
         public Estado()
         {
             estado = new pieza[tam, tam];
+            estadoPrevio = new pieza[tam, tam];
             hueco = new pieza();
         }
         public pieza[,] estado;
+        public pieza[,] estadoPrevio;
         public pieza hueco;
-        public int padre;
-        public int dir;
+        //public int padre;
+        public pos dir;
     };
 
     pieza[,] matriz;
@@ -307,44 +309,32 @@ public class MatrizJuego : MonoBehaviour {
         //Estado inicial del que partimos
         Estado estadoAct = new Estado();
         copiaMatriz(matriz, out estadoAct.estado, tam);
+        copiaMatriz(matriz, out estadoAct.estadoPrevio, tam);
         estadoAct.hueco = hueco;
-        estadoAct.padre = -1;
-        estadoAct.dir = -1;
-
 
         //Creamos una lista para no volver a pasar por los mismos estados
         List<Estado> estadosAnteriores = new List<Estado>();
         estadosAnteriores.Add(estadoAct);
+
         //Guardamos los movimientos en una lista para luego replicarlos en la parte gráfica de la solución
         movimientos = new List<pos>();
+
         //La cola será necesaria para hacer el BFS
         Queue<Estado> cola = new Queue<Estado>();
         cola.Enqueue(estadoAct);
-        int ik = 1;
-        bool encontrado=false;
-        while (!encontrado && cola.Count != 0) {
-            Debug.Log("CAMBIO DE PRIMERA DIRECCION");
-            estadoAct = cola.Dequeue();
 
-            int padre = estadosAnteriores.Count - 1;
-            bool yaEsta = false;
-            //pieza[,] aux = estadoAct;
+        //Necesitamos un booleano que nos avise de cuando tenemos que parar
+        bool encontrado = false;
+        while (!encontrado && cola.Count != 0) {
+            estadoAct = cola.Dequeue();
+            if (comparaMatriz(estadoAct.estado, matrizSolucion)){
+                estadosAnteriores.Add(estadoAct);
+                encontrado = true;
+            }
+
+            //Miramos los posibles estados siguientes
             for (int i = 0; !encontrado && i < 4; i++) {
-                if (comparaMatriz(estadoAct.estado, matrizSolucion)){
-                    //Debug.Log("encontrado");
-                    encontrado = true;
-                    encontrado = true;
-                    int au = estadosAnteriores.Count-1;
-                    while(estadosAnteriores[au].padre != -1){
-                        Debug.Log("Paso " + estadosAnteriores[au].dir);
-                        au = estadosAnteriores[au].padre;
-                    }
-                }else if(!yaEsta && movimientos.Count != 0){
-                    int borrar = movimientos.Count-1;
-                    //movimientos.RemoveAt(borrar);
-                    Debug.Log("Borrado Movimiento" + borrar);
-                }
-                Debug.Log("POS: " +i + "Vuelta" + ik);
+                
 
                 //Creamos un nuevo tablero que igualamos al estado actual para
                 //cambiarlo y sacar los siguientes estados.
@@ -353,22 +343,17 @@ public class MatrizJuego : MonoBehaviour {
                 nuevoTablero.hueco.i = estadoAct.hueco.i;
                 nuevoTablero.hueco.j = estadoAct.hueco.j;
                 nuevoTablero.hueco.valor = estadoAct.hueco.valor;
-                nuevoTablero.padre = padre;
-                nuevoTablero.dir = i;
+                copiaMatriz(estadoAct.estado, out nuevoTablero.estadoPrevio, tam);
 
-                
-                int aux;
                 if (cambio((pos)i, ref nuevoTablero.estado, ref nuevoTablero.hueco))
                 {
                     //Recorremos la lista de los estados anteriores a ver si alguno coincide con el nuevo.
                     int l = 0;
-                    yaEsta = false;
-
+                    bool yaEsta = false;
                     while (l < estadosAnteriores.Count && !yaEsta)
                     {
                         if (comparaMatriz(estadosAnteriores[l].estado, nuevoTablero.estado)){
                             yaEsta = true;
-                            //Debug.Log("HEY! " + estadosAnteriores.Count);
                         }
                         l++;
                     }
@@ -376,16 +361,26 @@ public class MatrizJuego : MonoBehaviour {
                     if (!yaEsta)
                     {
                         //Si no, se mete en la lista y en la cola y se apunta el movimiento
+                        nuevoTablero.dir = (pos)i;
                         estadosAnteriores.Add(nuevoTablero);
                         cola.Enqueue(nuevoTablero);
-                        //ESTO ESTA MAL PORQUE METE EN LA LISTA TODOS LOS MOVIMIENTOS
-                        movimientos.Add((pos)i);
                     }
                 }
-            ik++;
             }
-
         }
+
+        //Método con coste lineal para ir encontrando a los padres sucesivos
+        Estado recorrido = estadosAnteriores[estadosAnteriores.Count-1];
+        movimientos.Add(recorrido.dir);
+        for (int i = estadosAnteriores.Count-1; i >= 0; i--) {
+            if (comparaMatriz(estadosAnteriores[i].estado, recorrido.estadoPrevio)) {
+                recorrido = estadosAnteriores[i];
+                if (i > 0)
+                    movimientos.Add(recorrido.dir);//Recorremos los nodos visitados a la inversa y nos quedamos con las direcciones tomadas
+            }
+        }
+        //Para devolver la lista de movimientos la invertimos
+        movimientos.Reverse();
         return encontrado;
     }
 
@@ -462,12 +457,12 @@ public class MatrizJuego : MonoBehaviour {
         List<pos> movs = new List<pos>();
         if (!BFS(out movs)) Debug.Log("IRRESOLUBLE");
         else {
-            movs.ForEach(Print_);
-            Debug.Log("RESUELTO"+ movs.Count);
+            //movs.ForEach(Print_);
+            //Debug.Log("RESUELTO"+ movs.Count);
+            ///Graficos///
+            //StartCoroutine(haciaSolucion(movs));
         }
 
-        //Graficos
-        haciaSolucion(movs);
 
     }
 
