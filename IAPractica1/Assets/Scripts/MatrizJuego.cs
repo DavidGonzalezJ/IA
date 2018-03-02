@@ -12,22 +12,32 @@ struct pieza{
     public void SetIJ(int Y, int G) { i = Y; j = G; }
 };
 
-enum pos {arriba, abajo, izquierda, derecha};
-
-
+enum pos {arriba, abajo, izquierda, derecha, nula};
 
 public class MatrizJuego : MonoBehaviour {
     public bool pararbarajar = true;
+    public UnityEngine.UI.Text estadisticas;
     [SerializeField]
     private GameObject Puzzle;
     private static int tam;
-
-
+    public int DFS_profundidad = 20;
     pieza[,] matriz;
     pieza[,] matrizSolucion;
     pieza hueco;
 
-    class Estado{
+    //ESTADISTICAS
+    float BFS_time = 0;
+    int BFS_nodes = 0;
+    int BFS_pasos = 0;
+
+    float DFS_time = 0;
+    int DFS_nodes = 0;
+    int DFS_pasos = 0;
+
+
+
+    class Estado
+    {
 
         public Estado()
         {
@@ -38,8 +48,8 @@ public class MatrizJuego : MonoBehaviour {
         public pieza[,] estado;
         public pieza[,] estadoPrevio;
         public pieza hueco;
-        public int coste;
-        public pos dir;
+        public int coste = 0;
+        public pos dir = pos.nula;
     };
 
     //Inicializa la matriz para cualquier tamaño
@@ -67,7 +77,6 @@ public class MatrizJuego : MonoBehaviour {
     }
     // Update is called once per frame
     void Update () {
-        
     }
 
    
@@ -328,7 +337,9 @@ public class MatrizJuego : MonoBehaviour {
         bool encontrado = false;
         while (!encontrado && cola.Count != 0) {
             estadoAct = cola.Dequeue();
-            if(estadoAct.hueco.i == tam-1 && estadoAct.hueco.j == tam-1 && comparaMatriz(estadoAct.estado, matrizSolucion)){
+            BFS_nodes++;
+
+            if (estadoAct.hueco.i == tam-1 && estadoAct.hueco.j == tam-1 && comparaMatriz(estadoAct.estado, matrizSolucion)){
                 estadosAnteriores.Add(estadoAct);
                 encontrado = true;
             }
@@ -397,25 +408,31 @@ public class MatrizJuego : MonoBehaviour {
         estadosAnteriores.Add(estadoAct);
         //Guardamos los movimientos en una lista para luego replicarlos en la parte gráfica de la solución
         movimientos = new List<pos>();
-        //La cola será necesaria para hacer el BFS
+       
+        //La pila será necesaria para hacer el DFS
         Stack<Estado> pila = new Stack<Estado>();
         pila.Push(estadoAct);
         bool encontrado = false;
         while (!encontrado && pila.Count != 0)
         {
             estadoAct = pila.Pop();
+            DFS_nodes++;
 
             if (comparaMatriz(estadoAct.estado, matrizSolucion))
                 encontrado =  true;
-            for (int i = 0; !encontrado && i < 4; i++)
+            for (int i = 0; !encontrado && estadoAct.coste < DFS_profundidad && i < 4; i++)
             {
                 //Creamos un nuevo tablero que igualamos al estado actual para
                 //cambiarlo y sacar los siguientes estados.
                 Estado nuevoTablero = new Estado();
                 copiaMatriz(estadoAct.estado, out nuevoTablero.estado, tam);
+                copiaMatriz(estadoAct.estado, out nuevoTablero.estadoPrevio, tam);
                 nuevoTablero.hueco.i = estadoAct.hueco.i;
                 nuevoTablero.hueco.j = estadoAct.hueco.j;
                 nuevoTablero.hueco.valor = estadoAct.hueco.valor;
+                nuevoTablero.coste = estadoAct.coste + 1;
+                nuevoTablero.dir = (pos)i;
+
                 //nuevoTablero.coste = estadoAct.coste + 1;
                 if (cambio((pos)i, ref nuevoTablero.estado, ref nuevoTablero.hueco))
                 {
@@ -434,13 +451,26 @@ public class MatrizJuego : MonoBehaviour {
                         //Si no, se mete en la lista y en la cola y se apunta el movimiento
                         estadosAnteriores.Add(nuevoTablero);
                         pila.Push(nuevoTablero);
-                        //ESTO ESTA MAL PORQUE METE EN LA LISTA TODOS LOS MOVIMIENTOS
-                        movimientos.Add((pos)i);
+                        if (comparaMatriz(nuevoTablero.estado, matrizSolucion))
+                            encontrado = true;
                     }
                 }
             }
         }
-        movimientos.ForEach(Print_);
+        //Método con coste lineal para ir encontrando a los padres sucesivos
+        Estado recorrido = estadosAnteriores[estadosAnteriores.Count - 1];
+        movimientos.Add(recorrido.dir);
+        for (int i = estadosAnteriores.Count - 1; i >= 0; i--)
+        {
+            if (comparaMatriz(estadosAnteriores[i].estado, recorrido.estadoPrevio))
+            {
+                recorrido = estadosAnteriores[i];
+                if (i > 0)
+                    movimientos.Add(recorrido.dir);//Recorremos los nodos visitados a la inversa y nos quedamos con las direcciones tomadas
+            }
+        }
+        //Para devolver la lista de movimientos la invertimos
+        movimientos.Reverse();
         return encontrado;
     }
 
@@ -458,6 +488,7 @@ public class MatrizJuego : MonoBehaviour {
         Debug.Log("Movimiento"+ (int)s);
     }
     public void Resuelve_BFS() {
+        float tiempoIni = Time.realtimeSinceStartup;
         //Primero relleno la lista de posiciones que hay que cambiar
         Debug.Log("CLICK");
         List<pos> movs = new List<pos>();
@@ -465,24 +496,32 @@ public class MatrizJuego : MonoBehaviour {
         else {
             movs.ForEach(Print_);
             Debug.Log("RESUELTO"+ movs.Count);
+            BFS_pasos = movs.Count;
+            BFS_time = Time.realtimeSinceStartup - tiempoIni;
+            
             ///Graficos///
             StartCoroutine(haciaSolucion(movs));
         }
+        estadisticas.text = "Estadisticas \n" + "Tiempo: " + BFS_time + "\nNodos: " + BFS_nodes + "\nPasos: " + BFS_pasos;
 
 
     }
     public void Resuelve_DFS() {
         //Primero relleno la lista de posiciones que hay que cambiar
-        Debug.Log("CLICK");
+        float tiempoIni = Time.realtimeSinceStartup;
+
         List<pos> movs = new List<pos>();
         if (!DFS(out movs)) Debug.Log("IRRESOLUBLE");
         else {
             movs.ForEach(Print_);
+            DFS_pasos = movs.Count;
             Debug.Log("RESUELTO"+ movs.Count);
-
+            DFS_time = Time.realtimeSinceStartup - tiempoIni;
             ///Graficos///
             StartCoroutine(haciaSolucion(movs));
         }
+
+        estadisticas.text = "Estadisticas \nDFS profundidad " + DFS_profundidad+" \nTiempo: " + DFS_time + "\nNodos: " + DFS_nodes + "\nPasos: " + DFS_pasos;
 
 
     }
@@ -491,16 +530,12 @@ public class MatrizJuego : MonoBehaviour {
 
         if((hueco.i-1) >= 0 && matriz[hueco.i-1,hueco.j].valor == Pieza){
             cambio(pos.arriba);
-            Debug.Log("MUEVE ARRIBA");
         }else if((hueco.i+1) < tam && matriz[hueco.i+1,hueco.j].valor == Pieza){
             cambio(pos.abajo);
-            Debug.Log("MUEVE abajo");
         }else if((hueco.j-1) >=0 && matriz[hueco.i,hueco.j-1].valor == Pieza){
             cambio(pos.izquierda);
-            Debug.Log("MUEVE izquierda");
         }else if((hueco.j+1) < tam && matriz[hueco.i,hueco.j+1].valor == Pieza){
             cambio(pos.derecha);
-            Debug.Log("MUEVE derecha");
         }
 
     }
