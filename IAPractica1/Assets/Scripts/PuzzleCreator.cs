@@ -6,7 +6,10 @@ using UnityEngine.UI;
 //https://jdanger.com/solving-8-puzzle-with-artificial-intelligence.html
 
 public class PuzzleCreator : MonoBehaviour {
-	private int tam;
+    public Sprite[] Imagenes = new Sprite[9];
+
+    private int tam;
+    bool imagen = false;
 	[SerializeField]
 	private GameObject button;
 	[SerializeField]
@@ -15,6 +18,7 @@ public class PuzzleCreator : MonoBehaviour {
     void Awake () {
     	tam = PuzzleManager.Instance.dameTam();
 		GridLayoutGroup Grid = puzzleField.GetComponent<GridLayoutGroup>();
+        if (tam == 3) imagen = true;
 
         if (Grid == null)
             Debug.Log("Falta script layout");
@@ -30,15 +34,20 @@ public class PuzzleCreator : MonoBehaviour {
 			for (int i = 0; i < tam * tam; i++) {
 				GameObject buttonn = Instantiate(button);
 				buttonn.name = "" + i;
-				Text texto = buttonn.GetComponentInChildren<Text> ();
-                //Image imagen = buttonn.GetComponent<Image>();
-                if (texto!=  null)
-					texto.text = ""+ i;
-				buttonn.transform.SetParent (puzzleField, false);
-				if(i==tam*tam-1){
-					Image a = buttonn.GetComponent<Image>();
-					a.enabled = false;
-				}
+                Image a = buttonn.GetComponent<Image>();
+                if (imagen)
+                    a.sprite = Imagenes[i];
+                else
+                {
+                    Text texto = buttonn.GetComponentInChildren<Text>();
+                    if (texto != null && i !=tam*tam-1)
+                        texto.text = "" + i;
+                }
+                buttonn.transform.SetParent(puzzleField, false);
+                if (i == tam * tam - 1)
+                {
+                    a.enabled = false;
+                }
 			}
 
         }

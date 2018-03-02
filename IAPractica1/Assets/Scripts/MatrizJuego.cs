@@ -526,6 +526,17 @@ public class MatrizJuego : MonoBehaviour {
 
     }
 
+    public void Reinicia() {
+        copiaMatriz(matrizSolucion, out matriz, tam);
+        hueco.i = tam - 1;
+        hueco.j = tam - 1;
+        GameObject a = null;
+        for (int i =0; i<tam*tam;i++){
+            a = Puzzle.transform.Find(i.ToString()).gameObject;
+            a.transform.SetSiblingIndex(i);
+        }
+    }
+
     public void move(int Pieza){
 
         if((hueco.i-1) >= 0 && matriz[hueco.i-1,hueco.j].valor == Pieza){
