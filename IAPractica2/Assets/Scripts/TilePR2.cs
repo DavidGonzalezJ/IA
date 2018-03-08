@@ -21,6 +21,9 @@ public class TilePR2 : MonoBehaviour {
 	public int x;
 	public int y;
 
+	public void SetOcupada(bool O){
+		Ocupada = O;
+	}
 
 	void Awake(){
 		Image a = this.GetComponent<Image>();
@@ -41,14 +44,19 @@ public class TilePR2 : MonoBehaviour {
 
 	}
 	public void Click (){
-		
-		if((int)estado < 3){
+		bool cambio = PuzzleManager.Instance.Bloqueado();
+		if(cambio && (int)estado < 3){
 			estado = (eCasilla)(((int)estado+1) % 3);
 			spriteCasilla.sprite = Imagenes[(int) estado];
-		}else{
-			//Que pasaría si seleccionamos el coche
+		}else if (!cambio && !Ocupada){ 
+			//Esta será la casilla a la que queremos ir con el coche seleccionado
+			//Avisamos al Puzzle manager de que queremos ir alli.
+			PuzzleManager.Instance.GoTo(Posicion);
 		}
 		//Avisamos al manager de que ha cambiado
-		int coche = PuzzleManager.Instance.Seleccionado(Posicion, estado);
+		//Este método devuelve un int que representa que coche esta seleccionado
+		PuzzleManager.Instance.Seleccionado(Posicion, estado);
+		//Ponemos la variable de Ocupado a true si hay un coche o si es una roca
+		if((int)estado > 2) Ocupada = true;
 	}
 }

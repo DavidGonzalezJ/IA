@@ -8,7 +8,7 @@ using UnityEngine.UI;
 public class PuzzleCreator : MonoBehaviour {
 
     private int tam;
-    bool imagen = false;
+
 	[SerializeField]
 	private GameObject button;
 	[SerializeField]
@@ -21,12 +21,6 @@ public class PuzzleCreator : MonoBehaviour {
         if (Grid == null)
             Debug.Log("Falta script layout");
         else {
-            if (tam == 0) tam = 6;
-			float scale = 3.0f /(float) tam;
-			float pantY = (720 - tam * 20)/tam;
-			Debug.Log(pantY + "    " + pantY/tam);
-
-			Debug.Log("Escala: " + scale);
 			Grid.constraintCount = tam;
 
 			for (int i = 0; i < tam * tam; i++) {
@@ -38,6 +32,7 @@ public class PuzzleCreator : MonoBehaviour {
                 tile.Posicion.SetPos(i%tam,i/tam);
                 if(i < 3){
                    tile.estado = (eCasilla) i + 3;
+                   tile.SetOcupada(true);
                 }
 			}
 
