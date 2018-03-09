@@ -19,12 +19,10 @@ public class PuzzleManager : MonoBehaviour {
 
 
 	//Lógica interna
-	public int tam = 3;
+	private int tam = 10;
 	public Seleccion Seleccion_ = Seleccion.none;
 	private dim pSeleccion_;
 	private eCasilla [,] matriz;
-
-	//private MatrizJuego matriz;
 
 	//Esto es para instanciar al manager desde cualquier script
 	//EJ:PuzzleManager.Instance.Seleccionado()
@@ -40,22 +38,17 @@ public class PuzzleManager : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		matriz = new eCasilla[tam,tam];
-		//matriz = this.GetComponent<MatrizJuego>();
 	}
 	
 	// Update is called once per frame
 	void Update () {
 
 	}
+
 	public int dameTam(){
 		return tam;	
 	}
-	/*
-	public void move(){
-        int Pieza;
-        int.TryParse(EventSystem.current.currentSelectedGameObject.name, out Pieza );
-		matriz.move(Pieza);
-	}*/
+
 	public void GoTo(dim Posicion){
 		//Llama al método resolutor con esa posición y la posicion del elemento seleccionado
 		Debug.Log("El coche "+ Seleccion_.ToString() +" se moverá a la posición" + Posicion.x_ + " " + Posicion.y_);
@@ -79,6 +72,7 @@ public class PuzzleManager : MonoBehaviour {
 		}
 		return (int)(Seleccion_) - 1;
 	}
+
 	IEnumerator infoTextoDelay() {
         //Ahora las aplico en plan bonito
         yield return new WaitForSecondsRealtime(0.5f);

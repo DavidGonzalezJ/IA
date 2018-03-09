@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-//https://jdanger.com/solving-8-puzzle-with-artificial-intelligence.html
-
 public class PuzzleCreator : MonoBehaviour {
 
     private int tam;
@@ -35,13 +33,11 @@ public class PuzzleCreator : MonoBehaviour {
                    tile.SetOcupada(true);
                 }
 			}
-
         }
 	}
 	// Update is called once per frame
 	void Update () {
-
-
+		
     }
 
 }

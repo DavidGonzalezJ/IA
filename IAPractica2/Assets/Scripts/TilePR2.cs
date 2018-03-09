@@ -13,6 +13,7 @@ public struct dim{
 public enum eCasilla { normal,embarrado, bloqueado, obsR, obsG, obsB }
 
 public class TilePR2 : MonoBehaviour {
+	eCasilla estadoAnterior = eCasilla.normal;
 	bool Ocupada = false;
 	public dim Posicion;
 	public eCasilla estado = eCasilla.normal;
@@ -46,6 +47,7 @@ public class TilePR2 : MonoBehaviour {
 	public void Click (){
 		bool cambio = PuzzleManager.Instance.Bloqueado();
 		if(cambio && (int)estado < 3){
+			estadoAnterior = estado;
 			estado = (eCasilla)(((int)estado+1) % 3);
 			spriteCasilla.sprite = Imagenes[(int) estado];
 		}else if (!cambio && !Ocupada){ 
