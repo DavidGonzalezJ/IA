@@ -27,7 +27,7 @@ public class PuzzleCreator : MonoBehaviour {
                 buttonn.transform.SetParent(puzzleField, false);
 
                 TilePR2 tile = buttonn.GetComponent<TilePR2>();
-                tile.Posicion.SetPos(i%tam,i/tam);
+                tile.Posicion.Set(i%tam,i/tam);
                 if(i < 3){
                    tile.estado = (eCasilla) i + 3;
                    tile.SetOcupada(true);

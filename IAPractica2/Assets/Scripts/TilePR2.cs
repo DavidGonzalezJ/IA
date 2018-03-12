@@ -4,10 +4,10 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public struct dim{
-	public int x_,y_;
-	public void SetPos(int x, int y){
-		x_=x;
-		y_=y;
+	public int x,y;
+	public void Set(int xI, int yI){
+		x=xI;
+		y=yI;
 	}
 }
 public enum eCasilla { normal,embarrado, bloqueado, obsR, obsG, obsB }
@@ -19,8 +19,6 @@ public class TilePR2 : MonoBehaviour {
 	public eCasilla estado = eCasilla.normal;
 	Image spriteCasilla;
 	public Sprite[] Imagenes = new Sprite[6];
-	public int x;
-	public int y;
 
 	public void SetOcupada(bool O){
 		Ocupada = O;
@@ -50,8 +48,10 @@ public class TilePR2 : MonoBehaviour {
 			estadoAnterior = estado;
 			estado = (eCasilla)(((int)estado+1) % 3);
 			spriteCasilla.sprite = Imagenes[(int) estado];
-		}else if (!cambio && !Ocupada){ 
+		}else if (!cambio && !Ocupada && estado != eCasilla.bloqueado){ 
 			//Esta será la casilla a la que queremos ir con el coche seleccionado
+			//Ponemos la flecha en la casilla
+			PuzzleManager.Instance.Flecha(this.transform);
 			//Avisamos al Puzzle manager de que queremos ir alli.
 			PuzzleManager.Instance.GoTo(Posicion);
 		}

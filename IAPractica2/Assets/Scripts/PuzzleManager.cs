@@ -16,6 +16,7 @@ public class PuzzleManager : MonoBehaviour {
 	[SerializeField]
 	private GameObject puzzle;
 	public UnityEngine.UI.Text infoJuego;
+	public GameObject [] Flechas = new GameObject [3];
 
 
 	//Lógica interna
@@ -48,11 +49,19 @@ public class PuzzleManager : MonoBehaviour {
 	public int dameTam(){
 		return tam;	
 	}
+	public void Flecha(Transform trans){
+		int flechaS = (int)(Seleccion_) - 1;
+		Flechas[flechaS].transform.position = trans.position;
+		Flechas[flechaS].SetActive(true);
+		StartCoroutine(flechaDelay(flechaS));
 
+	}
 	public void GoTo(dim Posicion){
+
 		//Llama al método resolutor con esa posición y la posicion del elemento seleccionado
-		Debug.Log("El coche "+ Seleccion_.ToString() +" se moverá a la posición" + Posicion.x_ + " " + Posicion.y_);
-		infoJuego.text +=  Environment.NewLine + "Se moverá a la posición" + Posicion.x_ + " " + Posicion.y_;
+		Debug.Log("El coche "+ Seleccion_.ToString() +" se moverá a la posición" + Posicion.x + " " + Posicion.y);
+		infoJuego.text +=  Environment.NewLine + "Se moverá a la posición" + Posicion.x + " " + Posicion.y;
+				
 		//Quita la selección
 		Seleccion_ = Seleccion.none;
 		StartCoroutine(infoTextoDelay());
@@ -64,11 +73,11 @@ public class PuzzleManager : MonoBehaviour {
 	}
 	public int Seleccionado(dim Posicion, eCasilla estado){
 
-		matriz[Posicion.x_,Posicion.y_] = estado;
+		matriz[(int)Posicion.x,(int)Posicion.y] = estado;
 		if((int)estado > 2){//Es uno de los coches
 			Seleccion_ = (Seleccion)((int)estado - 2);
 			infoJuego.text = "El coche seleccionado: " + Seleccion_.ToString();
-			pSeleccion_.SetPos(Posicion.x_,Posicion.y_);
+			pSeleccion_.Set(Posicion.x,Posicion.y);
 		}
 		return (int)(Seleccion_) - 1;
 	}
@@ -78,4 +87,11 @@ public class PuzzleManager : MonoBehaviour {
         yield return new WaitForSecondsRealtime(0.5f);
         infoJuego.text = "El coche seleccionado: " + Seleccion_.ToString();
     }
+
+    IEnumerator flechaDelay(int flecha) {
+       //Ahora las aplico en plan bonito
+       yield return new WaitForSecondsRealtime(2.5f);
+       Flechas[flecha].SetActive(false);
+    }
+
 }
