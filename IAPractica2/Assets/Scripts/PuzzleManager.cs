@@ -6,9 +6,14 @@ using System;
 
 
 public enum Seleccion{ none, R, G, B};
-public struct casilla{
-	public dim Posicion;
-	public eCasilla estado;
+public class casilla{
+    public dim Posicion;
+	//public eCasilla estado;
+    public int H;//Coste heurístico Manhattan
+    public int G;//Coste de la casilla (+ coste del padre)
+    public int F;//Coste total
+    public casilla padre;
+    public bool noPasar = false;
 }
 
 public class PuzzleManager : MonoBehaviour {
@@ -23,7 +28,8 @@ public class PuzzleManager : MonoBehaviour {
 	private int tam = 10;
 	public Seleccion Seleccion_ = Seleccion.none;
 	private dim pSeleccion_;
-	private eCasilla [,] matriz;
+	public eCasilla [,] matriz;
+    //public casilla[,] tablero;
 
 	//Esto es para instanciar al manager desde cualquier script
 	//EJ:PuzzleManager.Instance.Seleccionado()
@@ -39,7 +45,8 @@ public class PuzzleManager : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		matriz = new eCasilla[tam,tam];
-	}
+        //tablero = new casilla[tam, tam];
+    }
 	
 	// Update is called once per frame
 	void Update () {

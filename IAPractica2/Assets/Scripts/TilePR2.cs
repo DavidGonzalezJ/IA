@@ -42,8 +42,10 @@ public class TilePR2 : MonoBehaviour {
 	void Update () {
 
 	}
+
 	public void Click (){
 		bool cambio = PuzzleManager.Instance.Bloqueado();
+        //Si puedo cambiar el estado de la casilla, lo cambio 
 		if(cambio && (int)estado < 3){
 			estadoAnterior = estado;
 			estado = (eCasilla)(((int)estado+1) % 3);
