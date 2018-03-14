@@ -11,6 +11,7 @@ public class casilla{
 	//public eCasilla estado;
     public int H;//Coste heurístico Manhattan
     public int G;//Coste de la casilla (+ coste del padre)
+    public int g;//Coste original de la casilla
     public int F;//Coste total
     public casilla padre;
     public bool noPasar = false;
