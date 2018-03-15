@@ -24,6 +24,8 @@ public class PuzzleManager : MonoBehaviour {
 	private dim pSeleccion_ = new dim();
 	private dim [] posCoche = new dim [3];
 	public eCasilla [,] matriz;
+    bool inicial = true;
+    int iJ = 0;
 
 	//Esto es para instanciar al manager desde cualquier script
 	//EJ:PuzzleManager.Instance.Seleccionado()
@@ -39,26 +41,27 @@ public class PuzzleManager : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		matriz = new eCasilla[tam,tam];
-		
-		for (int i = 0; i < 3; i++){
-			Transform cochePos = Piezas.GetChild(i);
-			Coches[i].transform.position = cochePos.position;
-			Coches[i].SetActive(true);
-		}
     }
 	
 	// Update is called once per frame
 	void Update () {
-
-	}
+        if (inicial)
+        {
+            colocaCoche(-1, 0);
+        }else
+            inicial = false;
+    }
 
 	public void SetPiezas(Transform puzzleField){
 		Piezas = puzzleField;
-	}
+    }
 
 	public int dameTam(){
 		return tam;	
 	}
+    public GameObject dameCoche(int coche) {
+        return Coches[coche];
+    }
 	public void Flecha(Transform trans){
 		int flechaS = (int)(Seleccion_) - 1;
 		Flechas[flechaS].transform.position = trans.position;
@@ -100,7 +103,9 @@ public class PuzzleManager : MonoBehaviour {
 		TilePR2 logica = pieza.GetComponent<TilePR2>();
 		dim ant = origen;
        	foreach(var step in resolutor.camino ) {
-       		/*logica.vuelve();
+            int casilla = step.x + step.y * 10;
+            colocaCoche(casilla, coche);
+            /*logica.vuelve();
        		matriz[ant.x, ant.y] = logica.estado;
 
        		pieza = Piezas.GetChild(step.x + step.y*10);
@@ -108,12 +113,28 @@ public class PuzzleManager : MonoBehaviour {
        		logica.avanza(coche);
        		matriz[step.x, step.y] = logica.estado;
 			*/
-       		Debug.Log("Pos: " + step.x + " " + step.y );
+            Debug.Log("Pos: " + step.x + " " + step.y );
        		yield return new WaitForSecondsRealtime(0.5f);
        	};
     }
 
-	IEnumerator infoTextoDelay() {
+    private void colocaCoche(int casilla, int coche)
+    {
+        if (inicial)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                Transform cochePos = Piezas.GetChild(i);
+                Coches[i].transform.position = cochePos.position;
+            }
+        }
+        else
+        {
+            Transform cochePos = Piezas.GetChild(casilla);
+            Coches[coche].transform.position = cochePos.position;
+        }
+    }
+        IEnumerator infoTextoDelay() {
         //Ahora las aplico en plan bonito
         yield return new WaitForSecondsRealtime(0.5f);
         infoJuego.text = "El coche seleccionado: " + Seleccion_.ToString();
