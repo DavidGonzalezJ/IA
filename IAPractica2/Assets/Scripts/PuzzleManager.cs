@@ -69,7 +69,8 @@ public class PuzzleManager : MonoBehaviour {
 		infoJuego.text +=  Environment.NewLine + "Se moverá a la posición" + Posicion.x + " " + Posicion.y;
 		
 		int coche = (int)(Seleccion_) - 1;
-	    StartCoroutine(resolver(pSeleccion_ , Posicion, coche));
+		Resolutor resolutor = new Resolutor(matriz, pSeleccion_, Posicion);
+	    StartCoroutine(resolver(resolutor, pSeleccion_ , Posicion, coche));
 		
 		//Quita la selección
 		Seleccion_ = Seleccion.none;
@@ -91,9 +92,9 @@ public class PuzzleManager : MonoBehaviour {
 		return (int)(Seleccion_) - 1;
 	}
 
-    IEnumerator resolver(dim origen, dim destino, int coche) {
-		Resolutor resolutor = new Resolutor(matriz,origen,destino);
+    IEnumerator resolver(Resolutor resolutor, dim origen, dim destino, int coche) {
 		Transform pieza = Piezas.GetChild(origen.x + origen.y*10);
+
 		TilePR2 logica = pieza.GetComponent<TilePR2>();
         bool avanzar = true;
         for (int i = 1; avanzar && i <= resolutor.camino.Count; i++) {
@@ -113,12 +114,12 @@ public class PuzzleManager : MonoBehaviour {
             //StartCoroutine(espera(aux));
             yield return new WaitForSecondsRealtime(0.5f * aux);
         }
+        actualizaTablero();
 
     }
     IEnumerator espera(float aux) {
         yield return new WaitForSecondsRealtime(0.5f * aux);
     }
-
 
     IEnumerator infoTextoDelay() {
         //Ahora las aplico en plan bonito
@@ -131,4 +132,15 @@ public class PuzzleManager : MonoBehaviour {
        yield return new WaitForSecondsRealtime(2.5f);
        Flechas[flecha].SetActive(false);
     }
+
+    private void actualizaTablero(){
+    	for(int i = 0; i < 100; i++){
+    		int x = i % 10;
+    		int y = i / 10;
+    		Transform pieza = Piezas.GetChild(i);
+			TilePR2 logica = pieza.GetComponent<TilePR2>();
+			matriz[x,y] = logica.estado;
+    	}
+    }
+
 }
