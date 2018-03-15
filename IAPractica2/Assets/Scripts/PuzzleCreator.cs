@@ -31,7 +31,6 @@ public class PuzzleCreator : MonoBehaviour {
                 if(i < 3){
                    tile.estado = (eCasilla) i + 3;
                    tile.SetOcupada(true);
-
                 }
 			}
         }

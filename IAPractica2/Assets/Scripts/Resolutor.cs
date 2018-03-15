@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+
+
 public class Pair<T, U>
 {
     public Pair()
@@ -18,6 +21,9 @@ public class Pair<T, U>
     public U Second { get; set; }
 };
 
+
+
+
 public class Nodo{
     public dim Posicion;
     public int H;//Coste heurístico Manhattan
@@ -27,6 +33,10 @@ public class Nodo{
     public Nodo padre;
     public bool noPasar = false;
 }
+
+
+
+
 
 public class Resolutor {
 
@@ -42,11 +52,11 @@ public class Resolutor {
 
     ///Este es el método que resuelve el problema y devuelve una lista con todas las casillas por las que tiene que pasar
     ///desde el origen hasta el destino, utilizando el algoritmo A*
-    public Resolutor(dim posOrigen, dim posDestino) {
+    public Resolutor(eCasilla[,] estado ,dim posOrigen, dim posDestino) {
         //Este será el camino que rellenaremos al final
         camino = new List<dim>();
         tablero = new Nodo[10,10];
-        estados = PuzzleManager.Instance.matriz;
+        estados = estado;
         destino = posDestino;
         origen = posOrigen;
 
@@ -88,10 +98,7 @@ public class Resolutor {
             {
                 //Comprobamos si el adyacente está en el tablero
                 dim nuevaPos = new dim(); nuevaPos.Set(actual.Posicion.x + dir.First, actual.Posicion.y + dir.Second);
-                if (nuevaPos.x >= 0 &&
-                   nuevaPos.x < 10 &&
-                   nuevaPos.y >= 0 &&
-                   nuevaPos.y < 10) {
+                if (dentroTablero(nuevaPos)) {
                     //Comprobamos si el adyacente ya está entre los vistos
                     if (!vistos.Contains(tablero[nuevaPos.x, nuevaPos.y]))
                     {
@@ -172,4 +179,15 @@ public class Resolutor {
             camino.Reverse();
     }
 
+    private bool dentroTablero(dim pos){
+        return pos.x >= 0 && pos.x < 10 && pos.y >= 0 && pos.y < 10;
+    }
+
+    private void copyMatrix(eCasilla [,] origen , eCasilla [,] destino){
+        for(int i = 0; i<10; i++){
+            for (int j = 0; j < 10; j++){
+                destino[i,j] = origen[i,j];
+            }
+        }
+    }
 }

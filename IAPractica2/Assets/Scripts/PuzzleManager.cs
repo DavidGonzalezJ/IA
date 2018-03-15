@@ -18,8 +18,6 @@ public class PuzzleManager : MonoBehaviour {
 
 	private Transform Piezas;
 
-
-
 	//Lógica interna
 	private int tam = 10;
 	public Seleccion Seleccion_ = Seleccion.none;
@@ -41,6 +39,12 @@ public class PuzzleManager : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		matriz = new eCasilla[tam,tam];
+		
+		for (int i = 0; i < 3; i++){
+			Transform cochePos = Piezas.GetChild(i);
+			Coches[i].transform.position = cochePos.position;
+			Coches[i].SetActive(true);
+		}
     }
 	
 	// Update is called once per frame
@@ -65,10 +69,11 @@ public class PuzzleManager : MonoBehaviour {
 	public void GoTo(dim Posicion){
 
 		//Llama al método resolutor con esa posición y la posicion del elemento seleccionado
-		Debug.Log("El coche "+ Seleccion_.ToString() +" se moverá a la posición" + Posicion.x + " " + Posicion.y);
 		infoJuego.text +=  Environment.NewLine + "Se moverá a la posición" + Posicion.x + " " + Posicion.y;
+		
 		int coche = (int)(Seleccion_) - 1;
 		StartCoroutine( resolver(pSeleccion_ , Posicion, coche));
+		
 		//Quita la selección
 		Seleccion_ = Seleccion.none;
 		StartCoroutine(infoTextoDelay());
@@ -90,7 +95,7 @@ public class PuzzleManager : MonoBehaviour {
 	}
 
 	IEnumerator resolver(dim origen, dim destino, int coche) {
-		Resolutor resolutor = new Resolutor(origen,destino);
+		Resolutor resolutor = new Resolutor(matriz,origen,destino);
 		Transform pieza = Piezas.GetChild(origen.x + origen.y*10);
 		TilePR2 logica = pieza.GetComponent<TilePR2>();
 		dim ant = origen;
