@@ -66,17 +66,19 @@ public class TilePR2 : MonoBehaviour {
 		//Este método devuelve un int que representa que coche esta seleccionado
 		PuzzleManager.Instance.Seleccionado(Posicion, estado);
 		//Ponemos la variable de Ocupado a true si hay un coche o si es una roca
-		if((int)estado > 2) Ocupada = true;
+		if((int)estado >= 2) Ocupada = true;
 	}
 	public void vuelve () {
 		estado = estadoAnterior;
 		spriteCasilla.sprite = Imagenes[(int) estado];
 		Ocupada = false;
 	}
-	public void avanza (int coche) {
-		estado = (eCasilla) (coche + 2);
+	public bool avanza (int coche) {
+        if (Ocupada) return false;
+		estado = (eCasilla) (coche + 3);
 		spriteCasilla.sprite = Imagenes[(int) estado];
 		Ocupada = true;
+        return true;
 	}
 
 }
