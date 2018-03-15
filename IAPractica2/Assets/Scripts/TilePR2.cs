@@ -3,8 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public struct dim{
+public class dim{
 	public int x,y;
+	public dim(){}
+	public dim (int xI, int yI){
+		x=xI;
+		y=yI;
+	}
 	public void Set(int xI, int yI){
 		x=xI;
 		y=yI;
@@ -15,7 +20,7 @@ public enum eCasilla { normal,embarrado, bloqueado, obsR, obsG, obsB }
 public class TilePR2 : MonoBehaviour {
 	eCasilla estadoAnterior = eCasilla.normal;
 	bool Ocupada = false;
-	public dim Posicion;
+	public dim Posicion = new dim();
 	public eCasilla estado = eCasilla.normal;
 	Image spriteCasilla;
 	public Sprite[] Imagenes = new Sprite[6];
@@ -63,4 +68,15 @@ public class TilePR2 : MonoBehaviour {
 		//Ponemos la variable de Ocupado a true si hay un coche o si es una roca
 		if((int)estado > 2) Ocupada = true;
 	}
+	public void vuelve () {
+		estado = estadoAnterior;
+		spriteCasilla.sprite = Imagenes[(int) estado];
+		Ocupada = false;
+	}
+	public void avanza (int coche) {
+		estado = (eCasilla) (coche + 2);
+		spriteCasilla.sprite = Imagenes[(int) estado];
+		Ocupada = true;
+	}
+
 }

@@ -6,16 +6,7 @@ using System;
 
 
 public enum Seleccion{ none, R, G, B};
-public class casilla{
-    public dim Posicion;
-	//public eCasilla estado;
-    public int H;//Coste heurístico Manhattan
-    public int G;//Coste de la casilla (+ coste del padre)
-    public int g;//Coste original de la casilla
-    public int F;//Coste total
-    public casilla padre;
-    public bool noPasar = false;
-}
+
 
 public class PuzzleManager : MonoBehaviour {
 	//Parte Gráfica
@@ -23,14 +14,18 @@ public class PuzzleManager : MonoBehaviour {
 	private GameObject puzzle;
 	public UnityEngine.UI.Text infoJuego;
 	public GameObject [] Flechas = new GameObject [3];
+	public GameObject [] Coches = new GameObject [3];
+
+	private Transform Piezas;
+
 
 
 	//Lógica interna
 	private int tam = 10;
 	public Seleccion Seleccion_ = Seleccion.none;
-	private dim pSeleccion_;
+	private dim pSeleccion_ = new dim();
+	private dim [] posCoche = new dim [3];
 	public eCasilla [,] matriz;
-    //public casilla[,] tablero;
 
 	//Esto es para instanciar al manager desde cualquier script
 	//EJ:PuzzleManager.Instance.Seleccionado()
@@ -46,12 +41,15 @@ public class PuzzleManager : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		matriz = new eCasilla[tam,tam];
-        //tablero = new casilla[tam, tam];
     }
 	
 	// Update is called once per frame
 	void Update () {
 
+	}
+
+	public void SetPiezas(Transform puzzleField){
+		Piezas = puzzleField;
 	}
 
 	public int dameTam(){
@@ -69,7 +67,8 @@ public class PuzzleManager : MonoBehaviour {
 		//Llama al método resolutor con esa posición y la posicion del elemento seleccionado
 		Debug.Log("El coche "+ Seleccion_.ToString() +" se moverá a la posición" + Posicion.x + " " + Posicion.y);
 		infoJuego.text +=  Environment.NewLine + "Se moverá a la posición" + Posicion.x + " " + Posicion.y;
-				
+		int coche = (int)(Seleccion_) - 1;
+		StartCoroutine( resolver(pSeleccion_ , Posicion, coche));
 		//Quita la selección
 		Seleccion_ = Seleccion.none;
 		StartCoroutine(infoTextoDelay());
@@ -89,6 +88,25 @@ public class PuzzleManager : MonoBehaviour {
 		}
 		return (int)(Seleccion_) - 1;
 	}
+
+	IEnumerator resolver(dim origen, dim destino, int coche) {
+		Resolutor resolutor = new Resolutor(origen,destino);
+		Transform pieza = Piezas.GetChild(origen.x + origen.y*10);
+		TilePR2 logica = pieza.GetComponent<TilePR2>();
+		dim ant = origen;
+       	foreach(var step in resolutor.camino ) {
+       		/*logica.vuelve();
+       		matriz[ant.x, ant.y] = logica.estado;
+
+       		pieza = Piezas.GetChild(step.x + step.y*10);
+       		logica = pieza.GetComponent<TilePR2>();
+       		logica.avanza(coche);
+       		matriz[step.x, step.y] = logica.estado;
+			*/
+       		Debug.Log("Pos: " + step.x + " " + step.y );
+       		yield return new WaitForSecondsRealtime(0.5f);
+       	};
+    }
 
 	IEnumerator infoTextoDelay() {
         //Ahora las aplico en plan bonito

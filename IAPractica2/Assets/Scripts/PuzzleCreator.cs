@@ -31,13 +31,16 @@ public class PuzzleCreator : MonoBehaviour {
                 if(i < 3){
                    tile.estado = (eCasilla) i + 3;
                    tile.SetOcupada(true);
+
                 }
 			}
         }
+        PuzzleManager.Instance.SetPiezas(puzzleField);
 	}
 	// Update is called once per frame
 	void Update () {
 		
     }
+
 
 }

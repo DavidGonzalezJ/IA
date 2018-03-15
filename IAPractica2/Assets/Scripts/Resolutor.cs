@@ -18,44 +18,52 @@ public class Pair<T, U>
     public U Second { get; set; }
 };
 
-public class Resolutor : MonoBehaviour {
+public class Nodo{
+    public dim Posicion;
+    public int H;//Coste heurístico Manhattan
+    public int G;//Coste de la casilla (+ coste del padre)
+    public int g;//Coste original de la casilla
+    public int F;//Coste total
+    public Nodo padre;
+    public bool noPasar = false;
+}
+
+public class Resolutor {
 
     //Direcciones para acceder más rápido a las casillas adyacentes
-    Pair<int, int>[] dirs = new Pair<int, int>[]{new Pair<int, int>( -1, 0 ), new Pair<int, int>(0, -1 ), new Pair<int, int>( 1, 0 ),new Pair<int, int>( 0, 1 ) };
+    Pair<int, int>[] dirs = new Pair<int,int>[] {
+                    new Pair<int, int>( -1, 0 ), new Pair<int, int>(0, -1 ), 
+                    new Pair<int, int>( 1, 0 ),new Pair<int, int>( 0, 1 ) };
 
+    eCasilla[,] estados;
+    Nodo[,] tablero;
+    dim destino, origen;
+    public List<dim> camino;
 
     ///Este es el método que resuelve el problema y devuelve una lista con todas las casillas por las que tiene que pasar
     ///desde el origen hasta el destino, utilizando el algoritmo A*
-    public List<casilla> caminoAstarManhattan(casilla origen, casilla destino) {
+    public Resolutor(dim posOrigen, dim posDestino) {
         //Este será el camino que rellenaremos al final
-        List<casilla> camino = new List<casilla>();
-        casilla[,] tablero = new casilla[10,10];
-        eCasilla[,] estados = PuzzleManager.Instance.matriz;
-        //Relleno los costes de cada casilla con la info de sus estados
-        // Y relleno los costes heurísticos (Manhattan) de cada casilla sabiendo el destino
-        int g;
-        dim posDestino = new dim();
-        posDestino.Set( destino.Posicion.x, destino.Posicion.y );
-        for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
-                g = (int)estados[i, j] + 1;
-                tablero[i, j].g = g;//Coste casilla
-                tablero[i, j].G = g;
-                if (g > 2) tablero[i, j].noPasar = true;
-                tablero[i, j].H = Mathf.Abs(posDestino.y - i) + Mathf.Abs(posDestino.x - j);//Coste heurístico
-            }
-        }
-        //Hacemos una cola de prioridad para los nodos adyacentes no checkeados
-        //Y una lista con los nodos ya vistos y por los que no hay que volver a pasar
-        List<casilla> aCheckear = new List<casilla>();
-        List<casilla> vistos = new List<casilla>();
+        camino = new List<dim>();
+        tablero = new Nodo[10,10];
+        estados = PuzzleManager.Instance.matriz;
+        destino = posDestino;
+        origen = posOrigen;
+
+        //Cola de prioridad para los nodos adyacentes no checkeados
+        //Lista con los nodos ya vistos y por los que no hay que volver a pasar
+        List<Nodo> aCheckear = new List<Nodo>();
+        List<Nodo> vistos = new List<Nodo>();
+
+        CrearNodos();
+
         //Cogemos la casilla inicial y se mete a la lista de no chequeados
-        dim posOrigen= new dim();
-        posOrigen.Set(origen.Posicion.x, origen.Posicion.y);
-        casilla inicio = tablero[posOrigen.x, posOrigen.y];
+
+        Nodo inicio = tablero[origen.x, origen.y];
         inicio.padre = inicio;
         inicio.G = inicio.g = 0;
         inicio.F = inicio.G + inicio.H;
+
         aCheckear.Add(inicio);
 
         bool encontrado = false;
@@ -70,7 +78,7 @@ public class Resolutor : MonoBehaviour {
                     pos = i;
                 }
             }
-            casilla actual = aCheckear[pos];
+            Nodo actual = aCheckear[pos];
             aCheckear.Remove(actual);
             vistos.Add(actual);
 
@@ -93,7 +101,7 @@ public class Resolutor : MonoBehaviour {
                         //Si no lo es, calculamos sus nuevos valores y lo metemos en la lista de pendientes
                         else {
                             //Comprobamos si es nuestro destino y si no, seguimos
-                            if (nuevaPos.x == posDestino.x && nuevaPos.y == posDestino.y)
+                            if (isGoal(nuevaPos))
                             {
                                 encontrado = true;
                                 tablero[nuevaPos.x, nuevaPos.y].padre = actual;
@@ -117,26 +125,51 @@ public class Resolutor : MonoBehaviour {
                 }
             }
         }
-        //Una vez tenemos los padres de cada nodo, creamos el camino
-        casilla auxiliar = tablero[posDestino.x, posDestino.y];
-        camino.Add(auxiliar);
-        do
-        {
-            auxiliar = auxiliar.padre;
-            camino.Add(auxiliar);
-        } while (auxiliar.padre != auxiliar);
-        //Lo invertimos y lo devolvemos
-        camino.Reverse();
-        return camino;
+        if(encontrado){
+            calculaCamino();
+        }else Debug.Log("Imposible");
     }
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    private bool isGoal(dim A){
+        return A.x == destino.x && A.y == destino.y;
+    }
+    private int costManhattan(int i , int j){
+        return Mathf.Abs(destino.y - i) + Mathf.Abs(destino.x - j);
+    }
+
+    //Relleno los costes de cada casilla con la info de sus estados
+    // Y relleno los costes heurísticos (Manhattan) de cada casilla sabiendo el destino
+    private void CrearNodos(){
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                Nodo node = new Nodo();
+                int g = (int)estados[i, j] + 1;
+                if (g > 2){ 
+                    node.noPasar = true;
+                    node.g = 100000000;//Coste casilla
+                }else
+                    node.g = g;//Coste casilla
+                node.G = g;
+                node.Posicion = new dim(i,j);
+
+                node.H = costManhattan(i,j);//Coste heurístico
+
+                tablero[i,j] = node;
+            }
+        }
+    } 
+
+    private void calculaCamino(){
+            //Una vez tenemos los padres de cada nodo, creamos el camino
+            Nodo auxiliar = tablero[destino.x, destino.y];
+            camino.Add(auxiliar.Posicion);
+            do
+            {
+                auxiliar = auxiliar.padre;
+                camino.Add(auxiliar.Posicion);
+            } while (auxiliar.padre != auxiliar);
+            //Lo invertimos y lo devolvemos
+            camino.Reverse();
+    }
+
 }

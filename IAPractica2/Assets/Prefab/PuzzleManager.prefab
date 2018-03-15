@@ -20,7 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4533759675103064}
   - component: {fileID: 114655567421929704}
-  - component: {fileID: 114580715226320586}
+  - component: {fileID: 114930158659273162}
   m_Layer: 0
   m_Name: PuzzleManager
   m_TagString: Untagged
@@ -41,19 +41,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &114580715226320586
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1296081837259972}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe5cd1e5ae2477b458ce07868f06ad54, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  tablero: 000000000000000000000000000000000000000000000000000000000000000000000000
-  Tsolucion: 
 --- !u!114 &114655567421929704
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -65,6 +52,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61d985fe169f4844991f2214207f71a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tam: 3
-  button: {fileID: 1532752783701384, guid: b9b8e382d69c7254687df15af8e47ec8, type: 2}
+  button: {fileID: 1532752783701384, guid: bce1429f205be4529a6cc289a3007951, type: 2}
   puzzleField: {fileID: 0}
+--- !u!114 &114930158659273162
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1296081837259972}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b540d86c71884283b2a936c39dc425c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  puzzle: {fileID: 0}
+  infoJuego: {fileID: 0}
+  Flechas:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  Coches:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  Seleccion_: 0
