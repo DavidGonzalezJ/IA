@@ -24,7 +24,8 @@ public class Pair<T, U>
 
 
 
-public class Nodo{
+public class Nodo:
+    Priority_Queue.FastPriorityQueueNode{
     public dim Posicion;
     public int H;//Coste heurístico Manhattan
     public int G;//Coste de la casilla (+ coste del padre)
@@ -62,7 +63,8 @@ public class Resolutor {
 
         //Cola de prioridad para los nodos adyacentes no checkeados
         //Lista con los nodos ya vistos y por los que no hay que volver a pasar
-        List<Nodo> aCheckear = new List<Nodo>();
+        Priority_Queue.FastPriorityQueue<Nodo> aCheckear = new Priority_Queue.FastPriorityQueue<Nodo>(100);
+        //List<Nodo> aCheckear = new List<Nodo>();
         List<Nodo> vistos = new List<Nodo>();
 
         CrearNodos();
@@ -74,13 +76,15 @@ public class Resolutor {
         inicio.G = inicio.g = 0;
         inicio.F = inicio.G + inicio.H;
 
-        aCheckear.Add(inicio);
+        aCheckear.Enqueue(inicio,inicio.F);
+        //aCheckear.Add(inicio);
 
         bool encontrado = false;
         //Ojo aquí que viene lo gordo
         while (aCheckear.Count > 0 && !encontrado) {
             //Cogemos el nodo de menor F de la lista, lo quitamos de ella y lo metemos en los ya checkeados
-            int pos = 0;
+            ///////////////////////////////////facilmente sustituible por una pq///////////////////////////////////////
+            /*int pos = 0;
             int valorMax = 10000000;
             for (int i = 0; i < aCheckear.Count; i++) {
                 if (aCheckear[i].F < valorMax) {
@@ -88,8 +92,9 @@ public class Resolutor {
                     pos = i;
                 }
             }
-            Nodo actual = aCheckear[pos];
-            aCheckear.Remove(actual);
+            Nodo actual = aCheckear[pos];*/
+            Nodo actual = aCheckear.Dequeue();
+            //aCheckear.Remove(actual);
             vistos.Add(actual);
 
             //Se miran los adyacentes y se les coloca el nodo actual como padre
@@ -125,7 +130,7 @@ public class Resolutor {
                                 else if (!aCheckear.Contains(tablero[nuevaPos.x, nuevaPos.y]))
                                     tablero[nuevaPos.x, nuevaPos.y].padre = actual;
                                 tablero[nuevaPos.x, nuevaPos.y].F = tablero[nuevaPos.x, nuevaPos.y].G + tablero[nuevaPos.x, nuevaPos.y].H;
-                                aCheckear.Add(tablero[nuevaPos.x, nuevaPos.y]);
+                                aCheckear.Enqueue(tablero[nuevaPos.x, nuevaPos.y], tablero[nuevaPos.x, nuevaPos.y].F);
                             }
                         }
                     }
@@ -141,7 +146,7 @@ public class Resolutor {
         return A.x == destino.x && A.y == destino.y;
     }
     private int costManhattan(int i , int j){
-        return Mathf.Abs(destino.y - i) + Mathf.Abs(destino.x - j);
+        return Mathf.Abs(destino.y - j) + Mathf.Abs(destino.x - i);
     }
 
     //Relleno los costes de cada casilla con la info de sus estados

@@ -75,6 +75,7 @@ public class TilePR2 : MonoBehaviour {
 	}
 	public bool avanza (int coche) {
         if (Ocupada) return false;
+        estadoAnterior = estado;
 		estado = (eCasilla) (coche + 3);
 		spriteCasilla.sprite = Imagenes[(int) estado];
 		Ocupada = true;

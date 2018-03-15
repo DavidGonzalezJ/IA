@@ -69,7 +69,7 @@ public class PuzzleManager : MonoBehaviour {
 		infoJuego.text +=  Environment.NewLine + "Se moverá a la posición" + Posicion.x + " " + Posicion.y;
 		
 		int coche = (int)(Seleccion_) - 1;
-		StartCoroutine( resolver(pSeleccion_ , Posicion, coche));
+	    StartCoroutine(resolver(pSeleccion_ , Posicion, coche));
 		
 		//Quita la selección
 		Seleccion_ = Seleccion.none;
@@ -91,7 +91,7 @@ public class PuzzleManager : MonoBehaviour {
 		return (int)(Seleccion_) - 1;
 	}
 
-	IEnumerator resolver(dim origen, dim destino, int coche) {
+    IEnumerator resolver(dim origen, dim destino, int coche) {
 		Resolutor resolutor = new Resolutor(matriz,origen,destino);
 		Transform pieza = Piezas.GetChild(origen.x + origen.y*10);
 		TilePR2 logica = pieza.GetComponent<TilePR2>();
@@ -99,6 +99,7 @@ public class PuzzleManager : MonoBehaviour {
         for (int i = 1; avanzar && i <= resolutor.camino.Count; i++) {
             logica.vuelve();
             matriz[resolutor.camino[i - 1].x, resolutor.camino[i - 1].y] = logica.estado;
+            float aux = (float)matriz[resolutor.camino[i - 1].x, resolutor.camino[i - 1].y] + 1;
             pieza = Piezas.GetChild(resolutor.camino[i - 1].x + resolutor.camino[i - 1].y * 10);
             logica = pieza.GetComponent<TilePR2>();
             avanzar = logica.avanza(coche);
@@ -109,11 +110,15 @@ public class PuzzleManager : MonoBehaviour {
                 logica.avanza(coche);
                 matriz[resolutor.camino[i - 2].x, resolutor.camino[i - 2].y] = logica.estado;
             }
-        
-            yield return new WaitForSecondsRealtime(0.5f);
+            //StartCoroutine(espera(aux));
+            yield return new WaitForSecondsRealtime(0.5f * aux);
         }
 
     }
+    IEnumerator espera(float aux) {
+        yield return new WaitForSecondsRealtime(0.5f * aux);
+    }
+
 
     IEnumerator infoTextoDelay() {
         //Ahora las aplico en plan bonito
@@ -126,5 +131,4 @@ public class PuzzleManager : MonoBehaviour {
        yield return new WaitForSecondsRealtime(2.5f);
        Flechas[flecha].SetActive(false);
     }
-    public 
 }
