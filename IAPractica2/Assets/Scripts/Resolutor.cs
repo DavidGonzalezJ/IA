@@ -78,19 +78,16 @@ public class Resolutor
         inicio.F = inicio.G + inicio.H;
 
         aCheckear.Add(inicio);
-        //aCheckear.Add(inicio);
 
         bool encontrado = false;
-        //Ojo aquí que viene lo gordo
+
         while (aCheckear.Count > 0 && !encontrado)
         {
             //Cogemos el nodo de menor F de la lista, lo quitamos de ella y lo metemos en los ya checkeados
             int pos = 0;
             int valorMax = 10000000;
-            for (int i = 0; i < aCheckear.Count; i++)
-            {
-                if (aCheckear[i].F < valorMax)
-                {
+            for (int i = 0; i < aCheckear.Count; i++){
+                if (aCheckear[i].F < valorMax){
                     valorMax = aCheckear[i].F;
                     pos = i;
                 }
@@ -102,33 +99,26 @@ public class Resolutor
 
             //Se miran los adyacentes y se les coloca el nodo actual como padre
             //se les pone como valor G su valor actual sumado al de su padre y se calcula su nuevo F
-            foreach (Pair<int, int> dir in dirs)
-            {
+            foreach (Pair<int, int> dir in dirs) {
                 //Comprobamos si el adyacente está en el tablero
                 dim nuevaPos = new dim(); nuevaPos.Set(actual.Posicion.x + dir.First, actual.Posicion.y + dir.Second);
                 if (dentroTablero(nuevaPos))
-                {
                     //Comprobamos si el adyacente ya está entre los vistos
-                    if (!vistos.Contains(tablero[nuevaPos.x, nuevaPos.y]))
-                    {
+                    if (!vistos.Contains(tablero[nuevaPos.x, nuevaPos.y])){
                         //Comprobamos si el adyacente es una casilla bloqueada
                         if (tablero[nuevaPos.x, nuevaPos.y].noPasar == true)
                             vistos.Add(tablero[nuevaPos.x, nuevaPos.y]);
                         //Si no lo es, calculamos sus nuevos valores y lo metemos en la lista de pendientes
-                        else
-                        {
+                        else {
                             //Comprobamos si es nuestro destino y si no, seguimos
-                            if (isGoal(nuevaPos))
-                            {
+                            if (isGoal(nuevaPos)) {
                                 encontrado = true;
                                 tablero[nuevaPos.x, nuevaPos.y].padre = actual;
                             }
-                            else
-                            {
+                            else {
                                 //Miramos si es un camino menos costoso que el anterior
                                 int nuevoG = actual.G + tablero[nuevaPos.x, nuevaPos.y].g;
-                                if (nuevoG < tablero[nuevaPos.x, nuevaPos.y].G && aCheckear.Contains(tablero[nuevaPos.x, nuevaPos.y]))
-                                {
+                                if (nuevoG < tablero[nuevaPos.x, nuevaPos.y].G && aCheckear.Contains(tablero[nuevaPos.x, nuevaPos.y])) {
                                     tablero[nuevaPos.x, nuevaPos.y].G = nuevoG;
                                     tablero[nuevaPos.x, nuevaPos.y].padre = actual;
                                 }
@@ -139,16 +129,10 @@ public class Resolutor
                             }
                         }
                     }
-                }
             }
         }
-        if (encontrado)
-        {
-            calculaCamino();
-        }
-        else {
-            imposible = true;
-            Debug.Log("Imposible"); }
+        if (encontrado) calculaCamino();
+        else imposible = true;
     }
 
     private bool isGoal(dim A)

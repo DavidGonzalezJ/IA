@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System;
+using UnityEngine.SceneManagement;
 
 public enum Seleccion{ none, R, G, B};
 
@@ -46,7 +47,8 @@ public class PuzzleManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-      
+        if (Input.GetKey("escape"))
+            Application.Quit();
     }
 
 	public void SetPiezas(Transform puzzleField){
@@ -106,18 +108,25 @@ public class PuzzleManager : MonoBehaviour {
     }
 
     IEnumerator resolver(List<dim> camino, dim origen, dim destino, int coche) {
-		Transform pieza = Piezas.GetChild(origen.x + origen.y*10);
 
-		TilePR2 logica = pieza.GetComponent<TilePR2>();
+		Transform pieza = Piezas.GetChild(origen.x + origen.y*10);
+        TilePR2 logica = pieza.GetComponent<TilePR2>();
+        Image tileColor = pieza.GetComponent<Image>();
+        tileColor.color = colores[coche+1];
+
         bool avanzar = true;
         int i;
+
         for (i = 1; avanzar && i <= camino.Count; i++) {
             logica.vuelve();
             matriz[camino[i - 1].x, camino[i - 1].y] = logica.estado;
             float aux = (float)matriz[camino[i - 1].x, camino[i - 1].y] + 1;
             pieza = Piezas.GetChild(camino[i - 1].x + camino[i - 1].y * 10);
             logica = pieza.GetComponent<TilePR2>();
+            tileColor = pieza.GetComponent<Image>();
+            tileColor.color = colores[coche+1];
             avanzar = logica.avanza(coche);
+
             if (!avanzar)
             {
                 pieza = Piezas.GetChild(camino[i - 2].x + camino[i - 2].y * 10);
@@ -128,7 +137,7 @@ public class PuzzleManager : MonoBehaviour {
             }
             yield return new WaitForSecondsRealtime(0.5f * aux);
         }
-        actualizaTablero();
+        actualizaTablero(camino);
         if(!avanzar)recalcula(camino[i - 3], destino, coche);
     }
     IEnumerator espera(float aux) {
@@ -147,13 +156,29 @@ public class PuzzleManager : MonoBehaviour {
        Flechas[flecha].SetActive(false);
     }
 
-    private void actualizaTablero(){
-    	for(int i = 0; i < 100; i++){
-    		int x = i % 10;
-    		int y = i / 10;
-    		Transform pieza = Piezas.GetChild(i);
-			TilePR2 logica = pieza.GetComponent<TilePR2>();
-			matriz[x,y] = logica.estado;
-    	}
+    private void actualizaTablero(List<dim> camino)
+    {
+        for (int i = 0; i < 100; i++)
+        {
+            int x = i % 10;
+            int y = i / 10;
+            Transform pieza = Piezas.GetChild(i);
+            TilePR2 logica = pieza.GetComponent<TilePR2>();
+            matriz[x, y] = logica.estado;
+        }
+        for (int i = 0; i < camino.Count; i++)
+        {
+            Transform pieza = Piezas.GetChild(camino[i].x + camino[i].y * 10);
+            Image tileColor = pieza.GetComponent<Image>();
+            tileColor.color = new Color(255, 255, 255, 255);
+
+        }
+    }
+
+    public void reinicia() {
+       SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+    public void Salir() {
+        Application.Quit();
     }
 }
