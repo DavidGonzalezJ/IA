@@ -2,18 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using System;
-
 
 public enum Seleccion{ none, R, G, B};
 
 
 public class PuzzleManager : MonoBehaviour {
 	//Parte Gráfica
-	[SerializeField]
-	private GameObject puzzle;
 	public UnityEngine.UI.Text infoJuego;
 	public GameObject [] Flechas = new GameObject [3];
+    public Image Fondo;
 
 	private Transform Piezas;
 
@@ -21,8 +20,9 @@ public class PuzzleManager : MonoBehaviour {
 	private int tam = 10;
 	public Seleccion Seleccion_ = Seleccion.none;
 	private dim pSeleccion_ = new dim();
-	private dim [] posCoche = new dim [3];
 	public eCasilla [,] matriz;
+
+    public Color[] colores = new Color[3];
 
 	//Esto es para instanciar al manager desde cualquier script
 	//EJ:PuzzleManager.Instance.Seleccionado()
@@ -41,6 +41,7 @@ public class PuzzleManager : MonoBehaviour {
         for (int i = 0; i < 3; i++) {
             matriz[i, 0] = (eCasilla)(i + 3);
         }
+        Fondo.color = colores[0];
     }
 	
 	// Update is called once per frame
@@ -67,11 +68,12 @@ public class PuzzleManager : MonoBehaviour {
 
 		//Llama al método resolutor con esa posición y la posicion del elemento seleccionado
 		infoJuego.text +=  Environment.NewLine + "Se moverá a la posición" + Posicion.x + " " + Posicion.y;
-		
 		int coche = (int)(Seleccion_) - 1;
+
 		Resolutor resolutor = new Resolutor(matriz, pSeleccion_, Posicion);
-	    StartCoroutine(resolver(resolutor, pSeleccion_ , Posicion, coche));
-		
+        if(!resolutor.imposible)
+            StartCoroutine(resolver(resolutor.camino, pSeleccion_ , Posicion, coche));
+
 		//Quita la selección
 		Seleccion_ = Seleccion.none;
 		StartCoroutine(infoTextoDelay());
@@ -83,39 +85,51 @@ public class PuzzleManager : MonoBehaviour {
 	}
 	public int Seleccionado(dim Posicion, eCasilla estado){
 		matriz[(int)Posicion.x,(int)Posicion.y] = estado;
-
+      
 		if((int)estado > 2){//Es uno de los coches
-			Seleccion_ = (Seleccion)((int)estado - 2);
-			infoJuego.text = "El coche seleccionado: " + Seleccion_.ToString();
-			pSeleccion_.Set(Posicion.x,Posicion.y);
-		}
-		return (int)(Seleccion_) - 1;
+            if (Seleccion_ == (Seleccion)((int)estado - 2)) Seleccion_ = Seleccion.none;
+            else
+            {
+                Seleccion_ = (Seleccion)((int)estado - 2);
+                infoJuego.text = "El coche seleccionado: " + Seleccion_.ToString();
+                pSeleccion_.Set(Posicion.x, Posicion.y);
+            }
+		}else if(estado == eCasilla.bloqueado && Seleccion_ != Seleccion.none) Seleccion_ = Seleccion.none;
+
+        Fondo.color = colores[(int)Seleccion_];
+        return (int)(Seleccion_) - 1;
 	}
 
-    IEnumerator resolver(Resolutor resolutor, dim origen, dim destino, int coche) {
+    private void recalcula(dim origen, dim destino, int coche) {
+        Resolutor resolutor = new Resolutor(matriz, origen, destino);
+        StartCoroutine(resolver(resolutor.camino, origen, destino, coche));
+    }
+
+    IEnumerator resolver(List<dim> camino, dim origen, dim destino, int coche) {
 		Transform pieza = Piezas.GetChild(origen.x + origen.y*10);
 
 		TilePR2 logica = pieza.GetComponent<TilePR2>();
         bool avanzar = true;
-        for (int i = 1; avanzar && i <= resolutor.camino.Count; i++) {
+        int i;
+        for (i = 1; avanzar && i <= camino.Count; i++) {
             logica.vuelve();
-            matriz[resolutor.camino[i - 1].x, resolutor.camino[i - 1].y] = logica.estado;
-            float aux = (float)matriz[resolutor.camino[i - 1].x, resolutor.camino[i - 1].y] + 1;
-            pieza = Piezas.GetChild(resolutor.camino[i - 1].x + resolutor.camino[i - 1].y * 10);
+            matriz[camino[i - 1].x, camino[i - 1].y] = logica.estado;
+            float aux = (float)matriz[camino[i - 1].x, camino[i - 1].y] + 1;
+            pieza = Piezas.GetChild(camino[i - 1].x + camino[i - 1].y * 10);
             logica = pieza.GetComponent<TilePR2>();
             avanzar = logica.avanza(coche);
             if (!avanzar)
             {
-                pieza = Piezas.GetChild(resolutor.camino[i - 2].x + resolutor.camino[i - 2].y * 10);
+                pieza = Piezas.GetChild(camino[i - 2].x + camino[i - 2].y * 10);
                 logica = pieza.GetComponent<TilePR2>();
                 logica.avanza(coche);
-                matriz[resolutor.camino[i - 2].x, resolutor.camino[i - 2].y] = logica.estado;
+                matriz[camino[i - 2].x, camino[i - 2].y] = logica.estado;
+                aux = 0;
             }
-            //StartCoroutine(espera(aux));
             yield return new WaitForSecondsRealtime(0.5f * aux);
         }
         actualizaTablero();
-
+        if(!avanzar)recalcula(camino[i - 3], destino, coche);
     }
     IEnumerator espera(float aux) {
         yield return new WaitForSecondsRealtime(0.5f * aux);
@@ -142,5 +156,4 @@ public class PuzzleManager : MonoBehaviour {
 			matriz[x,y] = logica.estado;
     	}
     }
-
 }
