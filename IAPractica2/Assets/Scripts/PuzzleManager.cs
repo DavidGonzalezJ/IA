@@ -42,6 +42,23 @@ public class PuzzleManager : MonoBehaviour {
         for (int i = 0; i < 3; i++) {
             matriz[i, 0] = (eCasilla)(i + 3);
         }
+
+        Transform pieza = Piezas.GetChild(0);
+        TilePR2 logica = pieza.GetComponent<TilePR2>();
+        logica.avanza(0);
+        matriz[0, 0] = eCasilla.obsR;
+
+        pieza = Piezas.GetChild(9);
+        logica = pieza.GetComponent<TilePR2>();
+        logica.avanza(1);
+        matriz[9, 0] = eCasilla.obsG;
+
+
+        pieza = Piezas.GetChild(99);
+        logica = pieza.GetComponent<TilePR2>();
+        logica.avanza(2);
+        matriz[9, 9] = eCasilla.obsB;
+
         Fondo.color = colores[0];
     }
 	

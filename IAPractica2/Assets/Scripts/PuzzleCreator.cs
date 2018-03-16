@@ -28,10 +28,11 @@ public class PuzzleCreator : MonoBehaviour {
 
                 TilePR2 tile = buttonn.GetComponent<TilePR2>();
                 tile.Posicion.Set(i%tam,i/tam);
+                /*
                 if(i < 3){
                    tile.estado = (eCasilla) i + 3;
                    tile.SetOcupada(true);
-                }
+                }*/
 			}
         }
         PuzzleManager.Instance.SetPiezas(puzzleField);
