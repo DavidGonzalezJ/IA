@@ -11,7 +11,7 @@ public enum Seleccion{ none, R, G, B};
 
 public class PuzzleManager : MonoBehaviour {
 	//Parte Gráfica
-	public UnityEngine.UI.Text infoJuego;
+
 	public GameObject [] Flechas = new GameObject [3];
     public Image Fondo;
 
@@ -69,7 +69,6 @@ public class PuzzleManager : MonoBehaviour {
 	public void GoTo(dim Posicion){
 
 		//Llama al método resolutor con esa posición y la posicion del elemento seleccionado
-		infoJuego.text +=  Environment.NewLine + "Se moverá a la posición" + Posicion.x + " " + Posicion.y;
 		int coche = (int)(Seleccion_) - 1;
 
 		Resolutor resolutor = new Resolutor(matriz, pSeleccion_, Posicion);
@@ -78,8 +77,6 @@ public class PuzzleManager : MonoBehaviour {
 
 		//Quita la selección
 		Seleccion_ = Seleccion.none;
-		StartCoroutine(infoTextoDelay());
-
 	}
 
 	public bool Bloqueado(){
@@ -93,7 +90,6 @@ public class PuzzleManager : MonoBehaviour {
             else
             {
                 Seleccion_ = (Seleccion)((int)estado - 2);
-                infoJuego.text = "El coche seleccionado: " + Seleccion_.ToString();
                 pSeleccion_.Set(Posicion.x, Posicion.y);
             }
 		}else if(estado == eCasilla.bloqueado && Seleccion_ != Seleccion.none) Seleccion_ = Seleccion.none;
@@ -142,12 +138,6 @@ public class PuzzleManager : MonoBehaviour {
     }
     IEnumerator espera(float aux) {
         yield return new WaitForSecondsRealtime(0.5f * aux);
-    }
-
-    IEnumerator infoTextoDelay() {
-        //Ahora las aplico en plan bonito
-        yield return new WaitForSecondsRealtime(0.5f);
-        infoJuego.text = "El coche seleccionado: " + Seleccion_.ToString();
     }
 
     IEnumerator flechaDelay(int flecha) {
