@@ -1,7 +1,6 @@
 ﻿// David González Jiménez
 // Patricia Cabrero Villar
 
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -31,7 +30,6 @@ public class Pair<T, U>
 
 public class GameManager : MonoBehaviour {
 
-    System.Random rn = new System.Random();
     //Direcciones
     Pair<int, int>[] dirs = new Pair<int, int>[] {
                     new Pair<int, int>( -1, 0 ), new Pair<int, int>(0, -1 ),
@@ -49,13 +47,14 @@ public class GameManager : MonoBehaviour {
     public Image Fondo;
     estadoJuego eJuego = estadoJuego.cadaver;
     int sangreNum = 0;
-	private Transform Piezas;
+
 
 	//Lógica interna
+	System.Random rn = new System.Random();
 	private int tam = 10;
 	public Seleccion Seleccion_ = Seleccion.none;
-	private Pos pSeleccion_ = new Pos();
 	public Casilla [,] matriz;
+	Transform Piezas;
 
     public Color[] colores = new Color[3];
 
@@ -76,28 +75,6 @@ public class GameManager : MonoBehaviour {
         for (int i = 0; i < tam; i++)
             for (int j = 0; j < tam; j++)
                 matriz[i, j] = new Casilla();
-        Debug.Log("Buenaaas");
-        /*for (int i = 0; i < 3; i++) {
-            matriz[i, 0] = (Casilla)(i + 3);
-        }
-
-        Transform pieza = Piezas.GetChild(0);
-        TilePR2 logica = pieza.GetComponent<TilePR2>();
-        logica.avanza(0);
-        matriz[0, 0] = Casilla.obsR;
-
-        pieza = Piezas.GetChild(9);
-        logica = pieza.GetComponent<TilePR2>();
-        logica.avanza(1);
-        matriz[9, 0] = eCasilla.obsG;
-
-
-        pieza = Piezas.GetChild(99);
-        logica = pieza.GetComponent<TilePR2>();
-        logica.avanza(2);
-        matriz[9, 9] = eCasilla.obsB;
-
-        Fondo.color = colores[0];*/
     }
 	
 	// Update is called once per frame
@@ -106,30 +83,21 @@ public class GameManager : MonoBehaviour {
             Application.Quit();
     }
 
-	public void SetPiezas(Transform puzzleField){
-		Piezas = puzzleField;
+	public void SetPiezas(Transform mapField){
+		Piezas = mapField;
     }
 
 	public int dameTam(){
 		return tam;	
 	}
 
-    /*
-	public void GoTo(Pos Posicion){
-
-		//Llama al método resolutor con esa posición y la posicion del elemento seleccionado
-		int coche = (int)(Seleccion_) - 1;
-
-		Resolutor resolutor = new Resolutor(matriz, pSeleccion_, Posicion);
-        if(!resolutor.imposible)
-            StartCoroutine(resolver(resolutor.camino, pSeleccion_ , Posicion, coche));
-
-		//Quita la selección
-		Seleccion_ = Seleccion.none;
-	}*/
+	bool colocaFoso (Pos p){
+		return (matriz[p.i , p.j].terreno != eTerreno.agujero &&
+			matriz[p.i, p.j].contenido == eCadaver.nada && !(p.i == 0 && p.j == tam -1) );
+	}
     bool compruebaRango(Pos p , Pair<int,int> par) {
-        return p.j + par.First < tam && p.j + par.First >= 0 &&
-                    p.i + par.Second < tam && p.i + par.Second >= 0;
+        return p.i + par.First < tam && p.i + par.First >= 0 &&
+                    p.j + par.Second < tam && p.j + par.Second >= 0;
     }
 
 
@@ -141,11 +109,11 @@ public class GameManager : MonoBehaviour {
         Transform childT;
         if (e == eCadaver.sangre)
         {
-            childT = assetsField.GetChild((int)e + sangreNum -1);
+            childT = assetsField.GetChild((int)e + sangreNum);
             sangreNum++;
         }
         else {
-            childT = assetsField.GetChild((int)e - 1);
+            childT = assetsField.GetChild((int)e);
         }
         childT.transform.position = t.position;
     }
@@ -162,11 +130,11 @@ public class GameManager : MonoBehaviour {
 	public int Seleccionado(Casilla estado){
         if (eJuego == estadoJuego.cadaver)
         {
-            matriz[estado.Posicion.j, estado.Posicion.i].contenido = eCadaver.cadaver;
+			matriz[estado.Posicion.i, estado.Posicion.j].contenido = eCadaver.cadaver;
             foreach (Pair<int, int> dir in dirs)
             {
                 if(compruebaRango(estado.Posicion,dir))
-                    matriz[(int)estado.Posicion.j + dir.First, (int)estado.Posicion.i + dir.Second].contenido = eCadaver.sangre;
+					matriz[(int)estado.Posicion.i + dir.First, (int)estado.Posicion.j + dir.Second].contenido = eCadaver.sangre;
             }
             bool encontrado = false;
             int rnd = -1;
@@ -176,40 +144,41 @@ public class GameManager : MonoBehaviour {
                 if (compruebaRango(estado.Posicion,dirs8[rnd]))
                     encontrado = true;
             }
-            matriz[(int)estado.Posicion.j + dirs8[rnd].First, (int)estado.Posicion.i + dirs8[rnd].Second].contenido = eCadaver.arma;
+			matriz[(int)estado.Posicion.i + dirs8[rnd].First, (int)estado.Posicion.j + dirs8[rnd].Second].contenido = eCadaver.arma;
             //Actualizar tablero
             actualizaTablero();
-
             eJuego = estadoJuego.agujero;
 
         }
-
-        if (eJuego == estadoJuego.agujero) {
-            matriz[(int)estado.Posicion.j, (int)estado.Posicion.i].terreno = eTerreno.agujero;
-            foreach (Pair<int, int> dir in dirs)
-            {
-                if (compruebaRango(estado.Posicion, dir))
-                    matriz[(int)estado.Posicion.j + dir.First, (int)estado.Posicion.i + dir.Second].terreno = eTerreno.barro;
-            }
-            //ActualizaTablero
-            actualizaTablero();
-
+		else if (eJuego == estadoJuego.agujero) {
+			if (colocaFoso(estado.Posicion)) {
+				matriz [estado.Posicion.i, estado.Posicion.j].terreno = eTerreno.agujero;
+				foreach (Pair<int, int> dir in dirs) {
+					if (compruebaRango (estado.Posicion, dir)
+					   && matriz [estado.Posicion.i + dir.First, estado.Posicion.j + dir.Second].terreno != eTerreno.agujero)
+						matriz [estado.Posicion.i + dir.First, estado.Posicion.j + dir.Second].terreno = eTerreno.barro;
+				}
+				//ActualizaTablero
+				actualizaTablero ();
+			}
         }
-
-        /*if((int)estado.terreno > 2){//Es uno de los coches
-            if (Seleccion_ == (Seleccion)((int)estado - 2)) Seleccion_ = Seleccion.none;
-            else
-            {
-                Seleccion_ = (Seleccion)((int)estado - 2);
-                pSeleccion_.Set(Posicion.x, Posicion.y);
-            }
-        }else if(estado == eCasilla.bloqueado && Seleccion_ != Seleccion.none) Seleccion_ = Seleccion.none;
-
-        Fondo.color = colores[(int)Seleccion_];
-        return (int)(Seleccion_) - 1;*/
         return 0;
 	}
 
+
+	/*
+	public void GoTo(Pos Posicion){
+
+		//Llama al método resolutor con esa posición y la posicion del elemento seleccionado
+		int coche = (int)(Seleccion_) - 1;
+
+		Resolutor resolutor = new Resolutor(matriz, pSeleccion_, Posicion);
+        if(!resolutor.imposible)
+            StartCoroutine(resolver(resolutor.camino, pSeleccion_ , Posicion, coche));
+
+		//Quita la selección
+		Seleccion_ = Seleccion.none;
+	}*/
   /*  IEnumerator resolver(List<dim> camino, dim origen, dim destino, int coche) {
 
 		Transform pieza = Piezas.GetChild(origen.x + origen.y*10);
