@@ -8,12 +8,16 @@ using UnityEngine.UI;
 
 
 public enum eTerreno { normal, barro, agujero };
-public enum eCadaver { nada, cadaver, sangre, arma };
+public enum eCadaver { nada, cadaver, arma, sangre };
 public class Casilla
 {
-    public eTerreno terreno = eTerreno.normal;
-    public eCadaver contenido = eCadaver.nada;
-    public Pos Posicion = new Pos();
+    public Casilla() { terreno = eTerreno.normal;
+        contenido = eCadaver.nada;
+        Posicion = new Pos();
+    }
+    public eTerreno terreno;
+    public eCadaver contenido;
+    public Pos Posicion;
 }
 public class TilePR3 : MonoBehaviour {
 	public Casilla estado = new Casilla();
@@ -42,7 +46,7 @@ public class TilePR3 : MonoBehaviour {
 	}
 
 	public void Click (){
-		/*bool cambio = PuzzleManager.Instance.Bloqueado();
+        /*bool cambio = PuzzleManager.Instance.Bloqueado();
         //Si puedo cambiar el estado de la casilla, lo cambio 
 		if(cambio && (int)estado < 3){
 			estadoAnterior = estado;
@@ -60,7 +64,8 @@ public class TilePR3 : MonoBehaviour {
 		PuzzleManager.Instance.Seleccionado(Posicion, estado);
 		//Ponemos la variable de Ocupado a true si hay un coche o si es una roca
 		if((int)estado >= 2) Ocupada = true;*/
-	}
+        GameManager.Instance.Seleccionado(estado);
+    }
 	public void vuelve () {
 		spriteCasilla.sprite = Imagenes[(int) estado.terreno];
 	}
@@ -69,5 +74,13 @@ public class TilePR3 : MonoBehaviour {
 		spriteCasilla.sprite = Imagenes[(int) estado.terreno];
         return true;
 	}
+    public void actualiza(Casilla c) {
+        estado.terreno = c.terreno;
+        spriteCasilla.sprite = Imagenes[(int)estado.terreno];
+        estado.contenido = c.contenido;
+        if (estado.contenido != eCadaver.nada) {
+            GameManager.Instance.colocaAsset(this.transform, estado.contenido);
+        }
+    }
 
 }

@@ -13,13 +13,42 @@ using UnityEngine.SceneManagement;
 public enum Seleccion{ none, R, G, B};
 public enum estadoJuego { cadaver, agujero, explora};
 
+public class Pair<T, U>
+{
+    public Pair()
+    {
+    }
+
+    public Pair(T first, U second)
+    {
+        this.First = first;
+        this.Second = second;
+    }
+
+    public T First { get; set; }
+    public U Second { get; set; }
+};
+
 public class GameManager : MonoBehaviour {
 
-	//Parte Gráfica
-	public GameObject [] Flechas = new GameObject [3];
+    System.Random rn = new System.Random();
+    //Direcciones
+    Pair<int, int>[] dirs = new Pair<int, int>[] {
+                    new Pair<int, int>( -1, 0 ), new Pair<int, int>(0, -1 ),
+                    new Pair<int, int>( 1, 0 ),new Pair<int, int>( 0, 1 ) };
+    Pair<int, int>[] dirs8 = new Pair<int, int>[] {
+                    new Pair<int, int>( -2, 0 ), new Pair<int, int>(0, -2 ),
+                    new Pair<int, int>( 2, 0 ),new Pair<int, int>( 0, 2 ),
+                    new Pair<int, int>( 1, 1 ),new Pair<int, int>( -1, -1 ),
+                    new Pair<int, int>( -1, 1 ),new Pair<int, int>( 1, -1 )};
+
+    //Parte Gráfica
+    [SerializeField]
+    private Transform assetsField;
+    public GameObject [] assets = new GameObject [6];
     public Image Fondo;
     estadoJuego eJuego = estadoJuego.cadaver;
-
+    int sangreNum = 0;
 	private Transform Piezas;
 
 	//Lógica interna
@@ -44,7 +73,10 @@ public class GameManager : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		matriz = new Casilla[tam,tam];
-
+        for (int i = 0; i < tam; i++)
+            for (int j = 0; j < tam; j++)
+                matriz[i, j] = new Casilla();
+        Debug.Log("Buenaaas");
         /*for (int i = 0; i < 3; i++) {
             matriz[i, 0] = (Casilla)(i + 3);
         }
@@ -82,13 +114,6 @@ public class GameManager : MonoBehaviour {
 		return tam;	
 	}
 
-	public void Flecha(Transform trans){
-		int flechaS = (int)(Seleccion_) - 1;
-		Flechas[flechaS].transform.position = trans.position;
-		Flechas[flechaS].SetActive(true);
-		//StartCoroutine(flechaDelay(flechaS));
-
-	}
     /*
 	public void GoTo(Pos Posicion){
 
@@ -102,13 +127,74 @@ public class GameManager : MonoBehaviour {
 		//Quita la selección
 		Seleccion_ = Seleccion.none;
 	}*/
+    bool compruebaRango(Pos p , Pair<int,int> par) {
+        return p.j + par.First < tam && p.j + par.First >= 0 &&
+                    p.i + par.Second < tam && p.i + par.Second >= 0;
+    }
+
 
 	public bool Bloqueado(){
 		return Seleccion_ == Seleccion.none;
 	}
-	public int Seleccionado(Pos Posicion, Casilla estado){
-		matriz[(int)Posicion.j,(int)Posicion.i] = estado;
 
+    public void colocaAsset(Transform t, eCadaver e) {
+        Transform childT;
+        if (e == eCadaver.sangre)
+        {
+            childT = assetsField.GetChild((int)e + sangreNum -1);
+            sangreNum++;
+        }
+        else {
+            childT = assetsField.GetChild((int)e - 1);
+        }
+        childT.transform.position = t.position;
+    }
+
+    void actualizaTablero() {
+        for (int i = 0; i < tam * tam; i++) {
+            GameObject tile = GameObject.Find(i.ToString());
+            TilePR3 tileScript = tile.GetComponent<TilePR3>();
+            tileScript.actualiza(matriz[i % tam, i / tam]);
+        }
+        sangreNum = 0;
+    }
+
+	public int Seleccionado(Casilla estado){
+        if (eJuego == estadoJuego.cadaver)
+        {
+            matriz[estado.Posicion.j, estado.Posicion.i].contenido = eCadaver.cadaver;
+            foreach (Pair<int, int> dir in dirs)
+            {
+                if(compruebaRango(estado.Posicion,dir))
+                    matriz[(int)estado.Posicion.j + dir.First, (int)estado.Posicion.i + dir.Second].contenido = eCadaver.sangre;
+            }
+            bool encontrado = false;
+            int rnd = -1;
+            while (!encontrado)
+            {
+                rnd = rn.Next(0, 8);
+                if (compruebaRango(estado.Posicion,dirs8[rnd]))
+                    encontrado = true;
+            }
+            matriz[(int)estado.Posicion.j + dirs8[rnd].First, (int)estado.Posicion.i + dirs8[rnd].Second].contenido = eCadaver.arma;
+            //Actualizar tablero
+            actualizaTablero();
+
+            eJuego = estadoJuego.agujero;
+
+        }
+
+        if (eJuego == estadoJuego.agujero) {
+            matriz[(int)estado.Posicion.j, (int)estado.Posicion.i].terreno = eTerreno.agujero;
+            foreach (Pair<int, int> dir in dirs)
+            {
+                if (compruebaRango(estado.Posicion, dir))
+                    matriz[(int)estado.Posicion.j + dir.First, (int)estado.Posicion.i + dir.Second].terreno = eTerreno.barro;
+            }
+            //ActualizaTablero
+            actualizaTablero();
+
+        }
 
         /*if((int)estado.terreno > 2){//Es uno de los coches
             if (Seleccion_ == (Seleccion)((int)estado - 2)) Seleccion_ = Seleccion.none;
@@ -117,7 +203,7 @@ public class GameManager : MonoBehaviour {
                 Seleccion_ = (Seleccion)((int)estado - 2);
                 pSeleccion_.Set(Posicion.x, Posicion.y);
             }
-		}else if(estado == eCasilla.bloqueado && Seleccion_ != Seleccion.none) Seleccion_ = Seleccion.none;
+        }else if(estado == eCasilla.bloqueado && Seleccion_ != Seleccion.none) Seleccion_ = Seleccion.none;
 
         Fondo.color = colores[(int)Seleccion_];
         return (int)(Seleccion_) - 1;*/

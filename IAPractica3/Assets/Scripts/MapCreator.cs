@@ -21,7 +21,7 @@ public class Pos
     }
 }
 public class MapCreator : MonoBehaviour {
-
+    private bool firstUpdate = true;
     private int tam;
 
 	[SerializeField]
@@ -59,14 +59,26 @@ public class MapCreator : MonoBehaviour {
         //Colocamos casa
         Transform house_ = assetsField.GetChild(0);
         Transform aux = mapField.transform.GetChild(tam * (tam - 1));
-        house_.transform.position = aux.transform.position;
+        house_.transform.position = aux.position;
+        //house_.transform.position.Set(aux.transform.position.x, aux.transform.position.y, aux.transform.position.z);
 
         GameManager.Instance.SetPiezas(mapField);
 
 	}
 	// Update is called once per frame
 	void Update () {
-		
+       // if (firstUpdate)
+       // {
+            Transform house_ = assetsField.GetChild(0);
+            Transform aux = mapField.transform.GetChild(tam * (tam - 1));
+            house_.transform.position = aux.position;
+        RectTransform houseRect = house_.GetComponent<RectTransform>();
+        houseRect.sizeDelta = new Vector2(65, 65);
+            //house_.transform.position.Set(aux.transform.position.x, aux.transform.position.y, aux.transform.position.z);
+
+            GameManager.Instance.SetPiezas(mapField);
+            firstUpdate = false;
+        //}
     }
 
 
