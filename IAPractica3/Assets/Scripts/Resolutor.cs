@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-/*
 
-public class Pair<T, U>
+
+/*public class Pair<T, U>
 {
     public Pair()
     {
@@ -19,11 +19,11 @@ public class Pair<T, U>
 
     public T First { get; set; }
     public U Second { get; set; }
-};
+};*/
 
 
 
-
+/*
 public class Nodo :
     Priority_Queue.FastPriorityQueueNode
 {
@@ -37,7 +37,7 @@ public class Nodo :
 }
 
 
-public class Resolutor
+public class Agente
 {
 
     //Direcciones para acceder más rápido a las casillas adyacentes
