@@ -43,7 +43,6 @@ public class GameManager : MonoBehaviour {
     //Parte Gráfica
     [SerializeField]
     private Transform assetsField;
-    public GameObject [] assets = new GameObject [6];
     public Image Fondo;
     estadoJuego eJuego = estadoJuego.cadaver;
     int sangreNum = 0;
@@ -52,12 +51,17 @@ public class GameManager : MonoBehaviour {
 	//Lógica interna
 	System.Random rn = new System.Random();
 	private int tam = 10;
-	public Seleccion Seleccion_ = Seleccion.none;
-	public Casilla [,] matriz;
+	Casilla [,] matriz;
 	Transform Piezas;
 
-    public Color[] colores = new Color[3];
-
+    public void getMatriz(ref Casilla[,] m) {
+        for (int i = 0; i < tam; i++)
+            for (int j = 0; j < tam; j++) {
+                m[i, j].contenido = matriz[i, j].contenido;
+                m[i, j].terreno = matriz[i, j].terreno;
+                m[i, j].Posicion = matriz[i, j].Posicion;
+            }
+    }
 	//Esto es para instanciar al manager desde cualquier script
 	//EJ:PuzzleManager.Instance.Seleccionado()
 	private static GameManager instance;
@@ -74,7 +78,10 @@ public class GameManager : MonoBehaviour {
 		matriz = new Casilla[tam,tam];
         for (int i = 0; i < tam; i++)
             for (int j = 0; j < tam; j++)
+            {
                 matriz[i, j] = new Casilla();
+                matriz[i, j].Posicion.Set(i, j);
+            }
     }
 	
 	// Update is called once per frame
@@ -100,10 +107,6 @@ public class GameManager : MonoBehaviour {
                     p.j + par.Second < tam && p.j + par.Second >= 0;
     }
 
-
-	public bool Bloqueado(){
-		return Seleccion_ == Seleccion.none;
-	}
 
     public void colocaAsset(Transform t, eCadaver e) {
         Transform childT;
@@ -165,6 +168,36 @@ public class GameManager : MonoBehaviour {
         return 0;
 	}
 
+    public void resuelve() {
+        Agente agent = new Agente();
+        StartCoroutine(avanzaAgente(agent));
+
+    }
+
+    IEnumerator holi() {
+        yield return new WaitForSecondsRealtime(0.5f);
+    }
+
+    IEnumerator avanzaAgente(Agente p) {
+        while (!p.muerte && !p.completado)
+        {
+            Pos pos = p.IA_agente();
+            if (pos != null)
+            {
+                Transform childT;
+                childT = assetsField.GetChild(7);
+                childT.transform.position = Piezas.GetChild(pos.j * tam + pos.i).position;
+                Debug.Log(pos.i + " " + pos.j);
+            }
+            yield return new WaitForSecondsRealtime(0.5f);
+        }
+        if (p.completado) {
+            //Llamamos a la vuelta a casa
+        }
+        if (p.muerte) {
+            //Nos morimos
+        }
+    }
 
 	/*
 	public void GoTo(Pos Posicion){

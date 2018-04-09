@@ -21,33 +21,56 @@ public class Agente{
     Pair<int, int>[] dirs = new Pair<int, int>[] {
                     new Pair<int, int>( -1, 0 ), new Pair<int, int>(0, -1 ),
                     new Pair<int, int>( 1, 0 ),new Pair<int, int>( 0, 1 ) };
+    Pair<int, int>[] dirs8 = new Pair<int, int>[] {
+                    new Pair<int, int>( -2, 0 ), new Pair<int, int>(0, -2 ),
+                    new Pair<int, int>( 2, 0 ),new Pair<int, int>( 0, 2 ),
+                    new Pair<int, int>( 1, 1 ),new Pair<int, int>( -1, -1 ),
+                    new Pair<int, int>( -1, 1 ),new Pair<int, int>( 1, -1 )};
 
-    public Agente() { }
+    public Agente() {
+        for (int i = 0; i < 10; i++)
+            for (int j = 0; j < 10; j++)
+            {
+                matrizAgente[i, j] = new Nodo();
+                matrizAgente[i, j].casilla.Posicion.Set(i, j);
+                matrizCompleta[i, j] = new Casilla();
+            }
+        GameManager.Instance.getMatriz(ref matrizCompleta);
+        casillaAct = matrizCompleta[0, 9];
+    }
 
-    private static Casilla[,] matrizCompleta = GameManager.Instance.matriz;
+    private static Casilla[,] matrizCompleta = new Casilla[10,10];
     private Nodo[,] matrizAgente = new Nodo[10, 10];
-    private Casilla casillaAct = matrizCompleta[0,9];
+    private Casilla casillaAct;
     private estadoAgente est = estadoAgente.buscaCadaver;
     bool armaEncontrada = false;
-    bool muerte = false;
+    public bool muerte = false;
+    public bool completado = false;
 
     bool compruebaCasilla(Nodo c, Pair<int, int> par) {
-        if (c.conocida) return false;
-        else {
-            return c.casilla.Posicion.i + par.First < 10 && c.casilla.Posicion.i + par.First >= 0 &&
+        bool dentro = c.casilla.Posicion.i + par.First < 10 && c.casilla.Posicion.i + par.First >= 0 &&
                                 c.casilla.Posicion.j + par.Second < 10 && c.casilla.Posicion.j + par.Second >= 0;
+        if (dentro && matrizAgente[c.casilla.Posicion.i + par.First, c.casilla.Posicion.j + par.Second].conocida) return false;
+        else {
+            return dentro;
         }
     }
 
-    public void IA_agente() {
-        while (!muerte)
+    void copiaCasilla(Casilla casillaAcopiar, ref Casilla casillaDestino) {
+        casillaDestino.contenido = casillaAcopiar.contenido;
+        casillaDestino.terreno = casillaAcopiar.terreno;
+        casillaDestino.Posicion = casillaAcopiar.Posicion;
+    }
+
+    public Pos IA_agente() {
+        if (!muerte)
         {
             if (est == estadoAgente.buscaCadaver)
             {
                 //1. Evalúa su casilla actual y le pone coste a las adyacentes
                 matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j].conocida = true;
                 matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j].casilla = casillaAct;
-                    ////Terreno
+                ////Terreno
                 if (casillaAct.terreno == eTerreno.normal)
                 {
                     matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j].coste++;
@@ -72,14 +95,17 @@ public class Agente{
                 ////Contenido
                 if (casillaAct.contenido == eCadaver.sangre)
                 {
-                    //El coste de las adyacentes desconocidas se decrementa en 1
+                    //El coste de las adyacentes desconocidas se decrementa en 2
+                    matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j].coste -= 2;
                     foreach (Pair<int, int> dir in dirs)
                     {
                         if (compruebaCasilla(matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j], dir))
-                            matrizAgente[casillaAct.Posicion.i + dir.First, casillaAct.Posicion.j + dir.Second].coste--;
+                            matrizAgente[casillaAct.Posicion.i + dir.First, casillaAct.Posicion.j + dir.Second].coste -= 3;
                     }
                 }
-                else if (casillaAct.contenido == eCadaver.arma) {
+                else if (casillaAct.contenido == eCadaver.arma)
+                {
+
                     armaEncontrada = true;
                 }
                 else if (casillaAct.contenido == eCadaver.cadaver)
@@ -89,7 +115,8 @@ public class Agente{
 
                 //2. Lista las casillas adyacentes y elige la de menor coste
                 // Si hay varias, lo echa a suertes
-                if (est == estadoAgente.buscaCadaver && !muerte) {
+                if (est == estadoAgente.buscaCadaver && !muerte)
+                {
                     int costeMin = 999;
                     foreach (Pair<int, int> dir in dirs)
                     {
@@ -108,26 +135,21 @@ public class Agente{
                     }
                     int r = rnd.Next(0, l.Count);
                     Nodo next = l[r];
-                    Casilla siguiente = matrizCompleta[next.casilla.Posicion.i, next.casilla.Posicion.i];
+                    Casilla siguiente = matrizCompleta[next.casilla.Posicion.i, next.casilla.Posicion.j];
 
-                //3. Se mueve a la casilla que se ha decidido
+                    //3. Se mueve a la casilla que se ha decidido
                     casillaAct = siguiente;
-                    /*Cambio gráfico correspondiente*/
+                    return casillaAct.Posicion;
                 }
-                
+            }
+            else if (est == estadoAgente.buscaArma && !armaEncontrada)
+            {
+
 
             }
-                    
+            else completado = true;
+            
         }
+        return null;
     }
-
-    // Use this for initialization
-    void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 }
