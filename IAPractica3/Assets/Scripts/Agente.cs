@@ -34,14 +34,27 @@ public class Agente{
                 matrizAgente[i, j] = new Nodo();
                 matrizAgente[i, j].casilla.Posicion.Set(i, j);
                 matrizCompleta[i, j] = new Casilla();
+                cont1 = cont2 = 0;
+                primero = true;
+                next = false;
             }
         GameManager.Instance.getMatriz(ref matrizCompleta);
         casillaAct = matrizCompleta[0, 9];
+        primeraVuelta = new List<Pair<int, int>>();
+        segundaVuelta = new List<Pair<int, int>>();
+        cadaver = new Nodo();
     }
 
     private static Casilla[,] matrizCompleta = new Casilla[10,10];
     private Nodo[,] matrizAgente = new Nodo[10, 10];
     private Casilla casillaAct;
+    //Para el arma
+    private List<Pair<int, int>> primeraVuelta, segundaVuelta;
+    Pair<int, int> primerPaso, segundoPaso;
+    private Nodo cadaver;
+    int cont1, cont2;
+    bool primero, next;
+
     private estadoAgente est = estadoAgente.buscaCadaver;
     bool armaEncontrada = false;
     public bool muerte = false;
@@ -110,6 +123,14 @@ public class Agente{
                 }
                 else if (casillaAct.contenido == eCadaver.cadaver)
                 {
+                    cadaver = matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j];
+                    casillaAct = cadaver.casilla;
+                    //Rellenamos la lista de posiciones donde puede estar el arma
+                    foreach (Pair<int, int> dir in dirs8)
+                    {
+                        if (compruebaCasilla(cadaver, dir))
+                            primeraVuelta.Add(dir);
+                    }
                     est = estadoAgente.buscaArma;
                 }
 
@@ -144,8 +165,42 @@ public class Agente{
             }
             else if (est == estadoAgente.buscaArma && !armaEncontrada)
             {
-
-
+                //1. Listamos las casillas en las que podría estar el arma y no hemos visitado
+                // Están a distancia 2 del cadáver, que es donde nos encontramos
+               
+                //2. Hacemos la primera búsqueda del arma
+                if (cont1 < primeraVuelta.Count && !next) {
+                    if (Mathf.Abs(primeraVuelta[cont1].First) == 2)
+                    {
+                        primerPaso = new Pair<int, int>(primeraVuelta[cont1].First / 2, 0);
+                        segundoPaso = new Pair<int, int>(primeraVuelta[cont1].First / 2, 0);
+                    }
+                    else if (Mathf.Abs(primeraVuelta[cont1].Second) == 2)
+                    {
+                        primerPaso = new Pair<int, int>(0, primeraVuelta[cont1].Second / 2);
+                        segundoPaso = new Pair<int, int>(0, primeraVuelta[cont1].Second / 2);
+                    }
+                    else {
+                        primerPaso = new Pair<int, int>(primeraVuelta[cont1].First, 0);
+                        segundoPaso = new Pair<int, int>(0, primeraVuelta[cont1].Second);
+                    }
+                    next = true;
+                    cont1++;
+                }
+                if (primero)
+                {
+                    Casilla siguiente = matrizCompleta[casillaAct.Posicion.i + primerPaso.First, casillaAct.Posicion.j + primerPaso.Second];
+                    casillaAct = siguiente;
+                    primero = false;
+                    return casillaAct.Posicion;
+                }
+                else {
+                    Casilla siguiente = matrizCompleta[casillaAct.Posicion.i + segundoPaso.First, casillaAct.Posicion.j + segundoPaso.Second];
+                    casillaAct = siguiente;
+                    primero = true;
+                    next = false;
+                    return casillaAct.Posicion;
+                }
             }
             else completado = true;
             
