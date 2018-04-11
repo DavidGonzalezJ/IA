@@ -43,6 +43,7 @@ public class Agente{
         primeraVuelta = new List<Pair<int, int>>();
         segundaVuelta = new List<Pair<int, int>>();
         cadaver = new Nodo();
+        voy = false;
     }
 
     private static Casilla[,] matrizCompleta = new Casilla[10,10];
@@ -53,7 +54,7 @@ public class Agente{
     Pair<int, int> primerPaso, segundoPaso;
     private Nodo cadaver;
     int cont1, cont2;
-    bool primero, next;
+    bool primero, next, voy;
 
     private estadoAgente est = estadoAgente.buscaCadaver;
     bool armaEncontrada = false;
@@ -120,6 +121,7 @@ public class Agente{
                 {
 
                     armaEncontrada = true;
+                    Debug.Log("ARMA ENCONTRADA");
                 }
                 else if (casillaAct.contenido == eCadaver.cadaver)
                 {
@@ -132,6 +134,7 @@ public class Agente{
                             primeraVuelta.Add(dir);
                     }
                     est = estadoAgente.buscaArma;
+                    Debug.Log("CUERPO ENCONTRADO");
                 }
 
                 //2. Lista las casillas adyacentes y elige la de menor coste
@@ -167,40 +170,66 @@ public class Agente{
             {
                 //1. Listamos las casillas en las que podría estar el arma y no hemos visitado
                 // Están a distancia 2 del cadáver, que es donde nos encontramos
-               
-                //2. Hacemos la primera búsqueda del arma
-                if (cont1 < primeraVuelta.Count && !next) {
-                    if (Mathf.Abs(primeraVuelta[cont1].First) == 2)
-                    {
-                        primerPaso = new Pair<int, int>(primeraVuelta[cont1].First / 2, 0);
-                        segundoPaso = new Pair<int, int>(primeraVuelta[cont1].First / 2, 0);
-                    }
-                    else if (Mathf.Abs(primeraVuelta[cont1].Second) == 2)
-                    {
-                        primerPaso = new Pair<int, int>(0, primeraVuelta[cont1].Second / 2);
-                        segundoPaso = new Pair<int, int>(0, primeraVuelta[cont1].Second / 2);
-                    }
-                    else {
-                        primerPaso = new Pair<int, int>(primeraVuelta[cont1].First, 0);
-                        segundoPaso = new Pair<int, int>(0, primeraVuelta[cont1].Second);
-                    }
-                    next = true;
-                    cont1++;
-                }
-                if (primero)
+                // Esto se hace cuando encontramos al cadaver
+                Pair<int, int> nuevaDir;
+
+                //2. Evaluamos la casilla en la que nos encontramos y buscamos el arma
+                if (casillaAct.contenido == eCadaver.cadaver)
                 {
-                    Casilla siguiente = matrizCompleta[casillaAct.Posicion.i + primerPaso.First, casillaAct.Posicion.j + primerPaso.Second];
+                    if (!voy)
+                    {
+                        nuevaDir = primeraVuelta[cont1];
+                        if (Mathf.Abs(nuevaDir.First) == 2)
+                        {
+                            primerPaso = new Pair<int, int>(nuevaDir.First / 2, 0);
+                            segundoPaso = new Pair<int, int>(nuevaDir.First / 2, 0);
+                        }
+                        else if (Mathf.Abs(nuevaDir.Second) == 2)
+                        {
+                            primerPaso = new Pair<int, int>(0, nuevaDir.Second / 2);
+                            segundoPaso = new Pair<int, int>(0, nuevaDir.Second / 2);
+                        }
+                        else
+                        {
+                            primerPaso = new Pair<int, int>(nuevaDir.First, 0);
+                            segundoPaso = new Pair<int, int>(0, nuevaDir.Second);
+                        }
+                        voy = true;
+                    }
+                    else
+                    {
+                        Casilla siguiente = matrizCompleta[casillaAct.Posicion.i + primerPaso.First, casillaAct.Posicion.j + primerPaso.Second];
+                        casillaAct = siguiente;
+                    }
+                   // return casillaAct.Posicion;
+                }
+                else if (casillaAct.contenido == eCadaver.sangre)
+                {
+                    if (voy)
+                    {
+                        Casilla siguiente = matrizCompleta[casillaAct.Posicion.i + segundoPaso.First, casillaAct.Posicion.j + segundoPaso.Second];
+                        casillaAct = siguiente;
+                    }
+                    else
+                    {
+                        Casilla siguiente = matrizCompleta[casillaAct.Posicion.i - primerPaso.First, casillaAct.Posicion.j - primerPaso.Second];
+                        casillaAct = siguiente;
+                    }
+                    //return casillaAct.Posicion;
+                }
+                else if (casillaAct.contenido == eCadaver.nada)
+                {
+                    Casilla siguiente = matrizCompleta[casillaAct.Posicion.i - segundoPaso.First, casillaAct.Posicion.j - segundoPaso.Second];
                     casillaAct = siguiente;
-                    primero = false;
-                    return casillaAct.Posicion;
+                    cont1++;
+                    voy = false;
                 }
                 else {
-                    Casilla siguiente = matrizCompleta[casillaAct.Posicion.i + segundoPaso.First, casillaAct.Posicion.j + segundoPaso.Second];
-                    casillaAct = siguiente;
-                    primero = true;
-                    next = false;
-                    return casillaAct.Posicion;
+                    est = estadoAgente.vuelve;
+                    armaEncontrada = true;
+                    Debug.Log("ARMA ENCONTRADA");
                 }
+                return casillaAct.Posicion;
             }
             else completado = true;
             
