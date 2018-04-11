@@ -43,9 +43,11 @@ public class GameManager : MonoBehaviour {
     //Parte Gráfica
     [SerializeField]
     private Transform assetsField;
-    public Image Fondo;
-    estadoJuego eJuego = estadoJuego.cadaver;
+
+	estadoJuego eJuego = estadoJuego.cadaver;
     int sangreNum = 0;
+	public UnityEngine.UI.Text estadisticas;
+
 
 
 	//Lógica interna
@@ -151,6 +153,7 @@ public class GameManager : MonoBehaviour {
             //Actualizar tablero
             actualizaTablero();
             eJuego = estadoJuego.agujero;
+			mensaje ("COLOCA LAS TRAMPAS ;)");
 
         }
 		else if (eJuego == estadoJuego.agujero) {
@@ -169,13 +172,13 @@ public class GameManager : MonoBehaviour {
 	}
 
     public void resuelve() {
-        Agente agent = new Agente();
-        StartCoroutine(avanzaAgente(agent));
+		if (estadoJuego.agujero == eJuego) {
+			Agente agent = new Agente ();
+			StartCoroutine (avanzaAgente (agent));
+			eJuego = estadoJuego.explora;
+			mensaje ("INSPECCIONANDO TERRENO");
+		}
 
-    }
-
-    IEnumerator holi() {
-        yield return new WaitForSecondsRealtime(0.5f);
     }
 
     IEnumerator avanzaAgente(Agente p) {
@@ -192,88 +195,38 @@ public class GameManager : MonoBehaviour {
             yield return new WaitForSecondsRealtime(0.5f);
         }
         if (p.completado) {
+			mensaje ("VOLVEMOS A CASA");
             //Llamamos a la vuelta a casa
+			goHome(p.dameMatrizAgente(), p.dameCasillaAgente());
         }
         if (p.muerte) {
             //Nos morimos
+			mensaje ("La próxima vez será! :(");
         }
     }
+	public void goHome(int[,]casillas, Pos posI){
+		dim posD = new dim( tam - 1, 0);
+		dim aux = new dim (posI.j, posI.i);
+		Resolutor resolutor = new Resolutor(casillas, aux, posD);
+		StartCoroutine(home(resolutor.camino, aux , posD));
+	}
 
-	/*
-	public void GoTo(Pos Posicion){
-
-		//Llama al método resolutor con esa posición y la posicion del elemento seleccionado
-		int coche = (int)(Seleccion_) - 1;
-
-		Resolutor resolutor = new Resolutor(matriz, pSeleccion_, Posicion);
-        if(!resolutor.imposible)
-            StartCoroutine(resolver(resolutor.camino, pSeleccion_ , Posicion, coche));
-
-		//Quita la selección
-		Seleccion_ = Seleccion.none;
-	}*/
-  /*  IEnumerator resolver(List<dim> camino, dim origen, dim destino, int coche) {
-
-		Transform pieza = Piezas.GetChild(origen.x + origen.y*10);
-        TilePR2 logica = pieza.GetComponent<TilePR2>();
-        Image tileColor = pieza.GetComponent<Image>();
-        tileColor.color = colores[coche+1];
-
-        bool avanzar = true;
-        int i;
-
-        for (i = 1; avanzar && i <= camino.Count; i++) {
-            logica.vuelve();
-            matriz[camino[i - 1].x, camino[i - 1].y] = logica.estado;
-            float aux = (float)matriz[camino[i - 1].x, camino[i - 1].y] + 1;
-            pieza = Piezas.GetChild(camino[i - 1].x + camino[i - 1].y * 10);
-            logica = pieza.GetComponent<TilePR2>();
-            tileColor = pieza.GetComponent<Image>();
-            tileColor.color = colores[coche+1];
-            avanzar = logica.avanza(coche);
-
-            if (!avanzar)
-            {
-                pieza = Piezas.GetChild(camino[i - 2].x + camino[i - 2].y * 10);
-                logica = pieza.GetComponent<TilePR2>();
-                logica.avanza(coche);
-                matriz[camino[i - 2].x, camino[i - 2].y] = logica.estado;
-                aux = 0;
-            }
-            yield return new WaitForSecondsRealtime(0.5f * aux);
-        }
-        actualizaTablero(camino);
-        if(!avanzar)recalcula(camino[i - 3], destino, coche);
-    }
-    IEnumerator espera(float aux) {
-        yield return new WaitForSecondsRealtime(0.5f * aux);
+	IEnumerator home(List<dim> camino, dim origen, dim destino) {
+			//Mirar camino mover bicho
+		for (int i = 1; i <= camino.Count-1; i++) {
+			Debug.Log (camino [i].x + " " + camino [i].y);
+			Transform childT;
+			childT = assetsField.GetChild (7);
+			Transform aux = Piezas.GetChild (camino [i].x * tam + camino [i].y);
+			if(aux != null)
+				childT.transform.position = aux.position;
+			yield return new WaitForSecondsRealtime (0.5f);
+		}
     }
 
-    IEnumerator flechaDelay(int flecha) {
-       //Ahora las aplico en plan bonito
-       yield return new WaitForSecondsRealtime(2.5f);
-       Flechas[flecha].SetActive(false);
-    }
-
-    private void actualizaTablero(List<dim> camino)
-    {
-        for (int i = 0; i < 100; i++)
-        {
-            int x = i % 10;
-            int y = i / 10;
-            Transform pieza = Piezas.GetChild(i);
-            TilePR2 logica = pieza.GetComponent<TilePR2>();
-            matriz[x, y] = logica.estado;
-        }
-        for (int i = 0; i < camino.Count; i++)
-        {
-            Transform pieza = Piezas.GetChild(camino[i].x + camino[i].y * 10);
-            Image tileColor = pieza.GetComponent<Image>();
-            tileColor.color = new Color(255, 255, 255, 255);
-
-        }
-    }
-    */
+	public void mensaje(string Mensaje){
+		estadisticas.text = Mensaje;
+	}
     public void reinicia() {
        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }

@@ -7,10 +7,12 @@ public class Nodo {
         casilla = new Casilla();
         coste = 1;
         conocida = false;
+		segura = false;
     }
     public Casilla casilla;
     public int coste;
     public bool conocida;
+	public bool segura;
 }
 
 public enum estadoAgente { buscaCadaver, buscaArma, vuelve };
@@ -85,10 +87,18 @@ public class Agente{
                 //1. Evalúa su casilla actual y le pone coste a las adyacentes
                 matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j].conocida = true;
                 matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j].casilla = casillaAct;
+				matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j].segura = true;
                 ////Terreno
                 if (casillaAct.terreno == eTerreno.normal)
                 {
                     matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j].coste++;
+					foreach (Pair<int, int> dir in dirs)
+					{
+						if (compruebaCasilla(matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j], dir))
+						{
+							matrizAgente[casillaAct.Posicion.i + dir.First, casillaAct.Posicion.j + dir.Second].segura = true;
+						}
+					}
                 }
                 else if (casillaAct.terreno == eTerreno.barro)
                 {
@@ -99,6 +109,7 @@ public class Agente{
                         if (compruebaCasilla(matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j], dir))
                         {
                             matrizAgente[casillaAct.Posicion.i + dir.First, casillaAct.Posicion.j + dir.Second].coste += 2;
+
                         }
                     }
                 }
@@ -114,8 +125,9 @@ public class Agente{
                     matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j].coste -= 2;
                     foreach (Pair<int, int> dir in dirs)
                     {
-                        if (compruebaCasilla(matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j], dir))
-                            matrizAgente[casillaAct.Posicion.i + dir.First, casillaAct.Posicion.j + dir.Second].coste -= 3;
+						if (compruebaCasilla (matrizAgente [casillaAct.Posicion.i, casillaAct.Posicion.j], dir)) {
+							matrizAgente [casillaAct.Posicion.i + dir.First, casillaAct.Posicion.j + dir.Second].coste -= 3;
+						}
                     }
                 }
                 else if (casillaAct.contenido == eCadaver.arma)
@@ -123,6 +135,7 @@ public class Agente{
 
                     armaEncontrada = true;
                     Debug.Log("ARMA ENCONTRADA");
+					GameManager.Instance.mensaje ("ARMA ENCONTRADA");
                 }
                 else if (casillaAct.contenido == eCadaver.cadaver)
                 {
@@ -136,12 +149,14 @@ public class Agente{
                     }
                     est = estadoAgente.buscaArma;
                     Debug.Log("CUERPO ENCONTRADO");
+					GameManager.Instance.mensaje ("CUERPO ENCONTRADO");
                 }
 
                 //2. Lista las casillas adyacentes y elige la de menor coste
                 // Si hay varias, lo echa a suertes
                 if (est == estadoAgente.buscaCadaver && !muerte)
                 {
+					
                     int costeMin = 999;
                     foreach (Pair<int, int> dir in dirs)
                     {
@@ -173,6 +188,7 @@ public class Agente{
                 // Están a distancia 2 del cadáver, que es donde nos encontramos
                 // Esto se hace cuando encontramos al cadaver
                 Pair<int, int> nuevaDir;
+				matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j].segura = true;
 
                 //2. Evaluamos la casilla en la que nos encontramos y buscamos el arma
                 if (casillaAct.contenido == eCadaver.cadaver)
@@ -207,6 +223,7 @@ public class Agente{
                             //He acabado con las posiciones seguras, me la tengo que jugar
                             if (cont1 == primeraVuelta.Count) { meLaJuego = true; cont1 = 0; }
                         }
+
                     }
                     else {
                         if (!voy)
@@ -235,6 +252,14 @@ public class Agente{
                             Casilla siguiente = matrizCompleta[casillaAct.Posicion.i + primerPaso.First, casillaAct.Posicion.j + primerPaso.Second];
                             casillaAct = siguiente;
                         }
+						foreach (Pair<int, int> dir in dirs)
+						{
+							if (compruebaCasilla(matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j], dir))
+							{
+								matrizAgente[casillaAct.Posicion.i + dir.First, casillaAct.Posicion.j + dir.Second].coste += 2;
+
+							}
+						}
                     }
                    // return casillaAct.Posicion;
                 }
@@ -283,10 +308,19 @@ public class Agente{
                     est = estadoAgente.vuelve;
                     armaEncontrada = true;
                     Debug.Log("ARMA ENCONTRADA");
+					GameManager.Instance.mensaje ("ARMA ENCONTRADA");
                 }
 
                 //3. Devolvemos la posición actual y actualizamos el tablero del agente
                 matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j].conocida = true;
+				matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j].segura = true;
+				if (matrizCompleta [casillaAct.Posicion.i, casillaAct.Posicion.j].terreno == eTerreno.normal) {
+					foreach (Pair<int, int> dir in dirs) {
+						if (compruebaCasilla (matrizAgente [casillaAct.Posicion.i, casillaAct.Posicion.j], dir)) {
+							matrizAgente [casillaAct.Posicion.i + dir.First, casillaAct.Posicion.j + dir.Second].segura = true;
+						}
+					}
+				}
                 matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j].casilla = casillaAct;
                 return casillaAct.Posicion;
             }
@@ -295,4 +329,19 @@ public class Agente{
         }
         return null;
     }
+	public Pos dameCasillaAgente(){
+		return casillaAct.Posicion;
+	}
+	public int [,] dameMatrizAgente(){
+		int[,] matriz = new int[10,10];
+		for (int i = 0; i < 10; i++) {
+			for (int j = 0; j < 10; j++) {
+				if (matrizAgente [i, j].segura == true)
+					matriz [j, i] = 1;
+				else
+					matriz [j, i] = 3;
+			}
+		}
+		return matriz;
+	}
 }

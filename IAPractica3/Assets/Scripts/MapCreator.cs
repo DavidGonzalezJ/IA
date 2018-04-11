@@ -21,7 +21,6 @@ public class Pos
     }
 }
 public class MapCreator : MonoBehaviour {
-    private bool firstUpdate = true;
     private int tam;
 
 	[SerializeField]
@@ -65,11 +64,6 @@ public class MapCreator : MonoBehaviour {
 		house_.transform.position = aux.position;
 		RectTransform houseRect = house_.GetComponent<RectTransform> ();
 		houseRect.sizeDelta = new Vector2 (65, 65);
-
 		GameManager.Instance.SetPiezas(mapField);
-		firstUpdate = false;
-
 	}
-
-
 }
