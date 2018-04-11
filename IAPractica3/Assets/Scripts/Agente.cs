@@ -37,6 +37,7 @@ public class Agente{
                 cont1 = cont2 = 0;
                 primero = true;
                 next = false;
+                meLaJuego = false;
             }
         GameManager.Instance.getMatriz(ref matrizCompleta);
         casillaAct = matrizCompleta[0, 9];
@@ -54,7 +55,7 @@ public class Agente{
     Pair<int, int> primerPaso, segundoPaso;
     private Nodo cadaver;
     int cont1, cont2;
-    bool primero, next, voy;
+    bool primero, next, voy, meLaJuego;
 
     private estadoAgente est = estadoAgente.buscaCadaver;
     bool armaEncontrada = false;
@@ -176,44 +177,98 @@ public class Agente{
                 //2. Evaluamos la casilla en la que nos encontramos y buscamos el arma
                 if (casillaAct.contenido == eCadaver.cadaver)
                 {
-                    if (!voy)
+                    if (!meLaJuego)
                     {
-                        nuevaDir = primeraVuelta[cont1];
-                        if (Mathf.Abs(nuevaDir.First) == 2)
+                        if (!voy)
                         {
-                            primerPaso = new Pair<int, int>(nuevaDir.First / 2, 0);
-                            segundoPaso = new Pair<int, int>(nuevaDir.First / 2, 0);
-                        }
-                        else if (Mathf.Abs(nuevaDir.Second) == 2)
-                        {
-                            primerPaso = new Pair<int, int>(0, nuevaDir.Second / 2);
-                            segundoPaso = new Pair<int, int>(0, nuevaDir.Second / 2);
+                            nuevaDir = primeraVuelta[cont1];
+                            if (Mathf.Abs(nuevaDir.First) == 2)
+                            {
+                                primerPaso = new Pair<int, int>(nuevaDir.First / 2, 0);
+                                segundoPaso = new Pair<int, int>(nuevaDir.First / 2, 0);
+                            }
+                            else if (Mathf.Abs(nuevaDir.Second) == 2)
+                            {
+                                primerPaso = new Pair<int, int>(0, nuevaDir.Second / 2);
+                                segundoPaso = new Pair<int, int>(0, nuevaDir.Second / 2);
+                            }
+                            else
+                            {
+                                primerPaso = new Pair<int, int>(nuevaDir.First, 0);
+                                segundoPaso = new Pair<int, int>(0, nuevaDir.Second);
+                            }
+                            voy = true;
+                            cont1++;
                         }
                         else
                         {
-                            primerPaso = new Pair<int, int>(nuevaDir.First, 0);
-                            segundoPaso = new Pair<int, int>(0, nuevaDir.Second);
+                            Casilla siguiente = matrizCompleta[casillaAct.Posicion.i + primerPaso.First, casillaAct.Posicion.j + primerPaso.Second];
+                            casillaAct = siguiente;
+                            //He acabado con las posiciones seguras, me la tengo que jugar
+                            if (cont1 == primeraVuelta.Count) { meLaJuego = true; cont1 = 0; }
                         }
-                        voy = true;
                     }
-                    else
-                    {
-                        Casilla siguiente = matrizCompleta[casillaAct.Posicion.i + primerPaso.First, casillaAct.Posicion.j + primerPaso.Second];
-                        casillaAct = siguiente;
+                    else {
+                        if (!voy)
+                        {
+                            nuevaDir = segundaVuelta[cont1];
+                            if (Mathf.Abs(nuevaDir.First) == 2)
+                            {
+                                primerPaso = new Pair<int, int>(nuevaDir.First / 2, 0);
+                                segundoPaso = new Pair<int, int>(nuevaDir.First / 2, 0);
+                            }
+                            else if (Mathf.Abs(nuevaDir.Second) == 2)
+                            {
+                                primerPaso = new Pair<int, int>(0, nuevaDir.Second / 2);
+                                segundoPaso = new Pair<int, int>(0, nuevaDir.Second / 2);
+                            }
+                            else
+                            {
+                                primerPaso = new Pair<int, int>(nuevaDir.First, 0);
+                                segundoPaso = new Pair<int, int>(0, nuevaDir.Second);
+                            }
+                            voy = true;
+                            cont1++;
+                        }
+                        else
+                        {
+                            Casilla siguiente = matrizCompleta[casillaAct.Posicion.i + primerPaso.First, casillaAct.Posicion.j + primerPaso.Second];
+                            casillaAct = siguiente;
+                        }
                     }
                    // return casillaAct.Posicion;
                 }
+
+                else if (casillaAct.terreno == eTerreno.agujero)
+                {
+                    muerte = true;
+                }
+
                 else if (casillaAct.contenido == eCadaver.sangre)
                 {
-                    if (voy)
+                    //Si no hay barro o si lo hay pero me la tengo que jugar, sigo adelante
+                    if (casillaAct.terreno != eTerreno.barro || meLaJuego)
                     {
-                        Casilla siguiente = matrizCompleta[casillaAct.Posicion.i + segundoPaso.First, casillaAct.Posicion.j + segundoPaso.Second];
-                        casillaAct = siguiente;
+                        if (voy)
+                        {
+                            Casilla siguiente = matrizCompleta[casillaAct.Posicion.i + segundoPaso.First, casillaAct.Posicion.j + segundoPaso.Second];
+                            casillaAct = siguiente;
+                        }
+                        else
+                        {
+                            Casilla siguiente = matrizCompleta[casillaAct.Posicion.i - primerPaso.First, casillaAct.Posicion.j - primerPaso.Second];
+                            casillaAct = siguiente;
+                        }
                     }
-                    else
-                    {
-                        Casilla siguiente = matrizCompleta[casillaAct.Posicion.i - primerPaso.First, casillaAct.Posicion.j - primerPaso.Second];
-                        casillaAct = siguiente;
+                    //Si lo hay y no tengo por qué jugármela, retrocedo
+                    else{
+                        if (voy) {
+                            Pair<int, int> aux = new Pair<int, int>(primerPaso.First + segundoPaso.First, primerPaso.Second + segundoPaso.Second);
+                            segundaVuelta.Add(aux);
+                            casillaAct = matrizCompleta[casillaAct.Posicion.i - primerPaso.First, casillaAct.Posicion.j - primerPaso.Second];
+                            voy = false;
+                           // cont1++;
+                        }
                     }
                     //return casillaAct.Posicion;
                 }
@@ -221,7 +276,7 @@ public class Agente{
                 {
                     Casilla siguiente = matrizCompleta[casillaAct.Posicion.i - segundoPaso.First, casillaAct.Posicion.j - segundoPaso.Second];
                     casillaAct = siguiente;
-                    cont1++;
+                   // cont1++;
                     voy = false;
                 }
                 else {
@@ -229,6 +284,10 @@ public class Agente{
                     armaEncontrada = true;
                     Debug.Log("ARMA ENCONTRADA");
                 }
+
+                //3. Devolvemos la posición actual y actualizamos el tablero del agente
+                matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j].conocida = true;
+                matrizAgente[casillaAct.Posicion.i, casillaAct.Posicion.j].casilla = casillaAct;
                 return casillaAct.Posicion;
             }
             else completado = true;
