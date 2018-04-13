@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 61d985fe169f4844991f2214207f71a9
+timeCreated: 1523189886
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - button: {fileID: 1532752783701384, guid: bce1429f205be4529a6cc289a3007951, type: 2}
+  - houseO: {fileID: 1214394945764344, guid: e22d61989237da34ca80026961234b86, type: 2}
+  - mapField: {fileID: 224142648367881382, guid: b84182e3dbf98b141b46beb549a267ab,
+      type: 2}
+  - assetsField: {fileID: 224142648367881382, guid: b84182e3dbf98b141b46beb549a267ab,
+      type: 2}
+  - agentField: {fileID: 224142648367881382, guid: b84182e3dbf98b141b46beb549a267ab,
+      type: 2}
+  executionOrder: 80
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
