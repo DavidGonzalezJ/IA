@@ -172,8 +172,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Imagenes:
   - {fileID: 21300000, guid: bcd9afd3f26514b2297077cc88279bc6, type: 3}
+  - {fileID: 21300000, guid: 5cec96e1579344a4da73ef306b0b313d, type: 3}
+  - {fileID: 21300000, guid: 6cfd8e7098683284285b4bc9d1a82512, type: 3}
   - {fileID: 21300000, guid: df01cd0ff9d114e0a904c055699c3075, type: 3}
-  - {fileID: 21300000, guid: 55b79b9096d022a49b77917c0da9b5f0, type: 3}
 --- !u!222 &222735340950492790
 CanvasRenderer:
   m_ObjectHideFlags: 1

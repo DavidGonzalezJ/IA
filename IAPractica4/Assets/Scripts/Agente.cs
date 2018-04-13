@@ -337,9 +337,9 @@ public class Agente{
 		for (int i = 0; i < 10; i++) {
 			for (int j = 0; j < 10; j++) {
 				if (matrizAgente [i, j].segura == true)
-					matriz [j, i] = 1;
+					matriz [i, j] = 1;
 				else
-					matriz [j, i] = 3;
+					matriz [i, j]= 3;
 			}
 		}
 		return matriz;

@@ -7,27 +7,28 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
-public enum eTerreno { normal, barro, agujero };
-public enum eCadaver { nada, cadaver, arma, sangre };
+public enum eTerreno { normal, zombi, soldado, lucha };
 public class Casilla
 {
-    public Casilla() { terreno = eTerreno.normal;
-        contenido = eCadaver.nada;
+    public Casilla() { 
+		terreno = eTerreno.normal;
         Posicion = new Pos();
     }
     public eTerreno terreno;
-    public eCadaver contenido;
     public Pos Posicion;
 }
+
 public class TilePR3 : MonoBehaviour {
+	
 	int nZombie = 0;
 	bool soldado = false;
-	bool heroe= false;
+	bool heroe = false;
+
 	public Casilla estado = new Casilla();
 
 	Image spriteCasilla;
 
-	public Sprite[] Imagenes = new Sprite[3];
+	public Sprite[] Imagenes = new Sprite[4];
 
 	void Awake(){
 		Image a = this.GetComponent<Image>();
@@ -49,24 +50,23 @@ public class TilePR3 : MonoBehaviour {
 	}
 
 	public void Click (){
-        /*bool cambio = PuzzleManager.Instance.Bloqueado();
+		bool cambio = !(GameManager.Instance.Simulando());
         //Si puedo cambiar el estado de la casilla, lo cambio 
-		if(cambio && (int)estado < 3){
-			estadoAnterior = estado;
-			estado = (eCasilla)(((int)estado+1) % 3);
+		if(cambio){
+			estado = (eTerreno)(((int)estado+1) % 3);
+			switch (estado) {
+			case eTerreno.soldado:
+				soldado = true;
+				nZombie = 0;
+				break;
+			}
 			spriteCasilla.sprite = Imagenes[(int) estado];
-		}else if (!cambio && !Ocupada && estado != eCasilla.bloqueado){ 
-			//Esta será la casilla a la que queremos ir con el coche seleccionado
-			//Ponemos la flecha en la casilla
-			PuzzleManager.Instance.Flecha(this.transform);
-			//Avisamos al Puzzle manager de que queremos ir alli.
-			PuzzleManager.Instance.GoTo(Posicion);
 		}
 		//Avisamos al manager de que ha cambiado
 		//Este método devuelve un int que representa que coche esta seleccionado
-		PuzzleManager.Instance.Seleccionado(Posicion, estado);
+		GameManager.Instance.Seleccionado(Posicion, estado);
 		//Ponemos la variable de Ocupado a true si hay un coche o si es una roca
-		if((int)estado >= 2) Ocupada = true;*/
+		if((int)estado >= 2) Ocupada = true;
         GameManager.Instance.Seleccionado(estado);
     }
 	public void vuelve () {

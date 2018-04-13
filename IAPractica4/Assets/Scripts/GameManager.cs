@@ -10,7 +10,7 @@ using System;
 using UnityEngine.SceneManagement;
 
 public enum Seleccion{ none, R, G, B};
-public enum estadoJuego { cadaver, agujero, explora};
+public enum estadoJuego { coloca, simula};
 
 public class Pair<T, U>
 {
@@ -44,7 +44,7 @@ public class GameManager : MonoBehaviour {
     [SerializeField]
     private Transform assetsField;
 
-	estadoJuego eJuego = estadoJuego.cadaver;
+	estadoJuego eJuego = estadoJuego.coloca;
     int sangreNum = 0;
 	public UnityEngine.UI.Text estadisticas;
 
@@ -64,6 +64,9 @@ public class GameManager : MonoBehaviour {
                 m[i, j].Posicion = matriz[i, j].Posicion;
             }
     }
+	public bool Simulando(){
+		return eJuego == estadoJuego.simula;
+	}
 	//Esto es para instanciar al manager desde cualquier script
 	//EJ:PuzzleManager.Instance.Seleccionado()
 	private static GameManager instance;
@@ -205,19 +208,18 @@ public class GameManager : MonoBehaviour {
         }
     }
 	public void goHome(int[,]casillas, Pos posI){
-		dim posD = new dim( tam - 1, 0);
-		dim aux = new dim (posI.j, posI.i);
-		Resolutor resolutor = new Resolutor(casillas, aux, posD);
-		StartCoroutine(home(resolutor.camino, aux , posD));
+		Pos posD = new Pos( 0, tam - 1);
+		Resolutor resolutor = new Resolutor(casillas, posI, posD);
+		StartCoroutine(home(resolutor.camino, posI , posD));
 	}
 
-	IEnumerator home(List<dim> camino, dim origen, dim destino) {
+	IEnumerator home(List<Pos> camino, Pos origen, Pos destino) {
 			//Mirar camino mover bicho
 		for (int i = 1; i <= camino.Count-1; i++) {
-			Debug.Log (camino [i].x + " " + camino [i].y);
+			Debug.Log (camino [i].i + " " + camino [i].j);
 			Transform childT;
 			childT = assetsField.GetChild (7);
-			Transform aux = Piezas.GetChild (camino [i].x * tam + camino [i].y);
+			Transform aux = Piezas.GetChild (camino [i].j * tam + camino [i].i);
 			if(aux != null)
 				childT.transform.position = aux.position;
 			yield return new WaitForSecondsRealtime (0.5f);
