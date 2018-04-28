@@ -62,7 +62,6 @@ public class GameManager : MonoBehaviour {
 	public void getMatriz(ref TilePR3[,] m) {
         for (int i = 0; i < tam; i++)
             for (int j = 0; j < tam; j++) {
-                //m[i, j].contenido = matriz[i, j].contenido;
 				m[i, j].estado.terreno = matriz[i, j].estado.terreno;
 				m[i, j].estado.Posicion = matriz[i, j].estado.Posicion;
             }
@@ -140,8 +139,13 @@ public class GameManager : MonoBehaviour {
 			tileScript.actualiza(matriz[i % tam, i / tam].estado);
         }
     }
-
-	public int Seleccionado(Casilla estado){
+	public void changesoldados(int a){
+		nSoldados += a;
+	}
+	public void changeZombies(int a){
+		nZombies += a;
+	}
+	public int Seleccionado(Casilla estado, bool cambio=true){
 		if (eJuego == estadoJuego.colocaheroe) {
 			matriz [estado.Posicion.i, estado.Posicion.j].heroe = true;
 			matriz [estado.Posicion.i, estado.Posicion.j].estado.terreno = eTerreno.heroe;
@@ -156,22 +160,17 @@ public class GameManager : MonoBehaviour {
 			case eTerreno.zombi:
 				matriz [estado.Posicion.i, estado.Posicion.j].nZombie = 1;
 				matriz [estado.Posicion.i, estado.Posicion.j].estado.terreno = eTerreno.zombi;
-					nZombies++;
-					break;
-				case eTerreno.soldado:
-					nSoldados++;
+				break;
+			case eTerreno.soldado:
 					matriz [estado.Posicion.i, estado.Posicion.j].soldado = true;
 					matriz [estado.Posicion.i, estado.Posicion.j].nZombie = 0;
-				matriz [estado.Posicion.i, estado.Posicion.j].estado.terreno = eTerreno.soldado;
-					if(nZombies!=0)
-						nZombies--;
+					matriz [estado.Posicion.i, estado.Posicion.j].estado.terreno = eTerreno.soldado;
 					break;
-				case eTerreno.normal:
+			case eTerreno.normal:
 				matriz [estado.Posicion.i, estado.Posicion.j].soldado = false;
 				matriz [estado.Posicion.i, estado.Posicion.j].nZombie = 0;
 				matriz [estado.Posicion.i, estado.Posicion.j].estado.terreno = eTerreno.normal;
-					nSoldados--;
-					break;
+				break;
 			}
 			mensaje ("nZombies: "+ nZombies + " nSoldados: "+ nSoldados);
 		}
@@ -315,7 +314,14 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public void lucha (){
-		
+		/*El soldado gana el 90% de las veces si quedan 3 o más
+		soldados en juego, el 50% si sólo quedan 2, y el 20% si es
+		el héroe y ya se encuentra solo
+		■ Si no hay luz, los soldados tienen un -10%
+		Los zombis pueden solaparse entre sí (se les combate a todos, uno por uno)
+		y el héroe puede solaparse con sus aliados: si justo entonces un zombi cae en
+		esa casilla, este combatirá primero con el aliado y luego con el héroe*/
+
 	}
 	public void turnoHeroe (){
 		

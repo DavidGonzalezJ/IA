@@ -53,29 +53,47 @@ public class TilePR3 : MonoBehaviour {
 	public void Click (){
 		bool cambio = GameManager.Instance.Colocar() && !heroe;
 		eTerreno aux = (eTerreno)(((int)estado.terreno + 1) % 3);
+		bool change = true;
+		if (estado.terreno == eTerreno.zombi)
+			GameManager.Instance.changeZombies (-1);
+		else if (estado.terreno == eTerreno.soldado)
+			GameManager.Instance.changesoldados (-1);
+
+
+
+
         //Si puedo cambiar el estado de la casilla, lo cambio 
 		if (cambio) {
-			if ((GameManager.Instance.nZombies < 20 && aux == eTerreno.zombi)
-				|| (GameManager.Instance.nSoldados < 5 && aux == eTerreno.soldado) 
-				|| aux == eTerreno.normal){
-				
+			if (GameManager.Instance.nZombies == 20 && GameManager.Instance.nSoldados == 5) {
+				estado.terreno = eTerreno.normal;
+				change = false;
+			} else if (GameManager.Instance.nSoldados == 5 && aux == eTerreno.soldado) {
+				estado.terreno = eTerreno.normal;
+				change = false;
+			}else if(GameManager.Instance.nZombies == 20 && aux == eTerreno.zombi) {
+				estado.terreno = eTerreno.soldado;
+				change = false;
+			}
+			else	
 				estado.terreno = (eTerreno)(((int)estado.terreno + 1) % 3);
 				switch (estado.terreno) {
 				case eTerreno.soldado:
 					soldado = true;
+					GameManager.Instance.changesoldados (1);
 					nZombie = 0;
 					break;
 				case eTerreno.zombi:
+				
 					soldado = false;
+					GameManager.Instance.changeZombies(1);
 					nZombie = 1;
 					break;
 				}
 				spriteCasilla.sprite = Imagenes [(int)estado.terreno];
-			}
 		}
 		if(GameManager.Instance.estado() != estadoJuego.simula)
 			//Avisamos al manager de que ha cambiado
-        	GameManager.Instance.Seleccionado(estado);
+        	GameManager.Instance.Seleccionado(estado, change);
     }
 
 	public void vuelve () {

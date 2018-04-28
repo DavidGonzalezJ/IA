@@ -1355,7 +1355,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: "COLOCA EL CAD\xC1VER"
+  m_Text: "COLOCA EL H\xC9ROE"
 --- !u!222 &1194525345
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1893,12 +1893,12 @@ Prefab:
     - target: {fileID: 224223663025633792, guid: d4f9c3943f274e043970738277112ada,
         type: 2}
       propertyPath: m_AnchoredPosition.x
-      value: 218.99995
+      value: 175.6649
       objectReference: {fileID: 0}
     - target: {fileID: 224223663025633792, guid: d4f9c3943f274e043970738277112ada,
         type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: -1038.0002
+      value: -772.5
       objectReference: {fileID: 0}
     - target: {fileID: 224223663025633792, guid: d4f9c3943f274e043970738277112ada,
         type: 2}
@@ -1949,6 +1949,16 @@ Prefab:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1917107855554242, guid: d4f9c3943f274e043970738277112ada, type: 2}
+      propertyPath: m_Name
+      value: CASA
+      objectReference: {fileID: 0}
+    - target: {fileID: 114019221661443170, guid: d4f9c3943f274e043970738277112ada,
+        type: 2}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 95cfc0233926d47f898fa80c0460778f,
+        type: 3}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: d4f9c3943f274e043970738277112ada, type: 2}
   m_IsPrefabParent: 0
