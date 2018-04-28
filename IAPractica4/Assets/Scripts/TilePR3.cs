@@ -19,7 +19,8 @@ public class Casilla
 }
 
 public class TilePR3 : MonoBehaviour {
-	
+    public TilePR3() { }
+
 	public int nZombie = 0;
 	public bool soldado = false;
 	public bool heroe = false;

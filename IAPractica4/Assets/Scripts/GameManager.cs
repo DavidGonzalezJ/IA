@@ -55,6 +55,7 @@ public class GameManager : MonoBehaviour {
 	Transform Piezas;
 	public int nZombies, nSoldados;
 	public bool luz = true;
+    int contador = 0;
 	List<TilePR3> zombies = new List<TilePR3>();
 	List<TilePR3> soldados = new List<TilePR3>();
 
@@ -100,12 +101,13 @@ public class GameManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		
-		if (eJuego == estadoJuego.simula) {
+        contador++;
+		if (eJuego == estadoJuego.simula && contador%60 == 0) {
 			turnoZombie ();
 			lucha ();
 			turnoHeroe ();
 			lucha ();
+            contador = 0;
 		}
         if (Input.GetKey("escape"))
             Application.Quit();
@@ -234,7 +236,7 @@ public class GameManager : MonoBehaviour {
 		}
     }
 	public void turnoZombie (){
-		TilePR3 soldadocercano;
+		Casilla soldadocercano = new Casilla();
 		Pos posZombie = new Pos();
 		Pos posSoldado = new Pos();
 		int distancia = 100;
@@ -246,38 +248,64 @@ public class GameManager : MonoBehaviour {
 				posSoldado = soldier.estado.Posicion;
 				int distAux = costManhatan (posZombie, posSoldado);
 				if (distancia > distAux) {
-					soldadocercano = soldier;
+					soldadocercano = soldier.estado;
 					distancia = distAux;
 				}
 			}
-
+            distancia = 100;
 			//AVANZO Y COMPRUEBO SI LUCHA
-			Pair<int,int> movNecesario = new Pair<int, int>(posSoldado.i- posZombie.i, posSoldado.j- posZombie.j);
-			if (movNecesario.First == 0) {
-				if (movNecesario.Second < 0) {
+			Pair<int,int> movNecesario = new Pair<int, int>(soldadocercano.Posicion.i- posZombie.i, soldadocercano.Posicion.j - posZombie.j);
+            if(movNecesario.First != 0 || movNecesario.Second != 0)
+			if (movNecesario.Second == 0) {
+				if (movNecesario.First < 0) {
 					//SE MUEVE UNO A LA IZQUIERDA
 					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j].nZombie --;
 					matriz[zom.estado.Posicion.i-1,zom.estado.Posicion.j].nZombie ++;
-					zom.estado.Posicion.i--;
+                        if (matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].nZombie == 0)
+                            matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].estado.terreno = eTerreno.normal;
+                        if (matriz[zom.estado.Posicion.i - 1, zom.estado.Posicion.j].heroe || matriz[zom.estado.Posicion.i - 1, zom.estado.Posicion.j].soldado)
+                            matriz[zom.estado.Posicion.i - 1, zom.estado.Posicion.j].estado.terreno = eTerreno.lucha;
+                        else
+                            matriz[zom.estado.Posicion.i - 1, zom.estado.Posicion.j].estado.terreno = eTerreno.zombi;
+                        zom.estado.Posicion.i--;
 
 				} else {
 					//SE MUEVE A LA DERECHA
 					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j].nZombie --;
 					matriz[zom.estado.Posicion.i+1,zom.estado.Posicion.j].nZombie ++;
+                        if (matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].nZombie == 0)
+                            matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].estado.terreno = eTerreno.normal;
+                        if (matriz[zom.estado.Posicion.i + 1, zom.estado.Posicion.j].heroe || matriz[zom.estado.Posicion.i + 1, zom.estado.Posicion.j].soldado)
+                            matriz[zom.estado.Posicion.i + 1, zom.estado.Posicion.j].estado.terreno = eTerreno.lucha;
+                        else
+                            matriz[zom.estado.Posicion.i + 1, zom.estado.Posicion.j].estado.terreno = eTerreno.zombi;
 					zom.estado.Posicion.i++;
-				}
+                    }
 			}else
-				if (movNecesario.First < 0) {
+				if (movNecesario.Second < 0) {
 					//SE MUEVE UNO ARRIBA
 					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j].nZombie --;
 					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j-1].nZombie ++;
+                    if (matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].nZombie == 0)
+                        matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].estado.terreno = eTerreno.normal;
+                    if (matriz[zom.estado.Posicion.i, zom.estado.Posicion.j-1].heroe || matriz[zom.estado.Posicion.i, zom.estado.Posicion.j-1].soldado)
+                        matriz[zom.estado.Posicion.i, zom.estado.Posicion.j-1].estado.terreno = eTerreno.lucha;
+                    else
+                        matriz[zom.estado.Posicion.i, zom.estado.Posicion.j-1].estado.terreno = eTerreno.zombi;
 					zom.estado.Posicion.j--;
-				}else{
+                }
+                else{
 					//SE MUEVE ABAJO
 					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j].nZombie --;
 					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j+1].nZombie ++;
+                    if (matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].nZombie == 0)
+                        matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].estado.terreno = eTerreno.normal;
+                    if (matriz[zom.estado.Posicion.i, zom.estado.Posicion.j + 1].heroe || matriz[zom.estado.Posicion.i, zom.estado.Posicion.j + 1].soldado)
+                        matriz[zom.estado.Posicion.i, zom.estado.Posicion.j + 1].estado.terreno = eTerreno.lucha;
+                    else
+                        matriz[zom.estado.Posicion.i, zom.estado.Posicion.j + 1].estado.terreno = eTerreno.zombi;
 					zom.estado.Posicion.j++;
-				}
+                }
 			actualizaTablero ();
 		}
 			
