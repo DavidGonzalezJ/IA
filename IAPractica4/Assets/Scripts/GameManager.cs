@@ -10,7 +10,7 @@ using System;
 using UnityEngine.SceneManagement;
 
 public enum Seleccion{ none, R, G, B};
-public enum estadoJuego { coloca, simula};
+public enum estadoJuego { colocaheroe, coloca, simula};
 
 public class Pair<T, U>
 {
@@ -43,30 +43,38 @@ public class GameManager : MonoBehaviour {
     //Parte Gráfica
     [SerializeField]
     private Transform assetsField;
-
-	estadoJuego eJuego = estadoJuego.coloca;
-    int sangreNum = 0;
 	public UnityEngine.UI.Text estadisticas;
 
+	estadoJuego eJuego = estadoJuego.colocaheroe;
 
 
 	//Lógica interna
 	System.Random rn = new System.Random();
 	private int tam = 10;
-	Casilla [,] matriz;
+	TilePR3 [,] matriz;
 	Transform Piezas;
+	public int nZombies, nSoldados;
+	public bool luz = true;
+	List<TilePR3> zombies = new List<TilePR3>();
+	List<TilePR3> soldados = new List<TilePR3>();
 
-    public void getMatriz(ref Casilla[,] m) {
+	public void getMatriz(ref TilePR3[,] m) {
         for (int i = 0; i < tam; i++)
             for (int j = 0; j < tam; j++) {
-                m[i, j].contenido = matriz[i, j].contenido;
-                m[i, j].terreno = matriz[i, j].terreno;
-                m[i, j].Posicion = matriz[i, j].Posicion;
+                //m[i, j].contenido = matriz[i, j].contenido;
+				m[i, j].estado.terreno = matriz[i, j].estado.terreno;
+				m[i, j].estado.Posicion = matriz[i, j].estado.Posicion;
             }
     }
-	public bool Simulando(){
-		return eJuego == estadoJuego.simula;
+
+	public bool Colocar(){
+		return eJuego == estadoJuego.coloca;
 	}
+
+	public estadoJuego estado(){
+		return eJuego;
+	}
+
 	//Esto es para instanciar al manager desde cualquier script
 	//EJ:PuzzleManager.Instance.Seleccionado()
 	private static GameManager instance;
@@ -78,19 +86,27 @@ public class GameManager : MonoBehaviour {
 		}
 
 	}
+
 	// Use this for initialization
 	void Start () {
-		matriz = new Casilla[tam,tam];
+		matriz = new TilePR3[tam,tam];
         for (int i = 0; i < tam; i++)
             for (int j = 0; j < tam; j++)
             {
-                matriz[i, j] = new Casilla();
-                matriz[i, j].Posicion.Set(i, j);
+				matriz[i, j] = new TilePR3();
+				matriz[i, j].estado.Posicion.Set(i, j);
             }
     }
 	
 	// Update is called once per frame
 	void Update () {
+		
+		if (eJuego == estadoJuego.simula) {
+			turnoZombie ();
+			lucha ();
+			turnoHeroe ();
+			lucha ();
+		}
         if (Input.GetKey("escape"))
             Application.Quit();
     }
@@ -103,88 +119,78 @@ public class GameManager : MonoBehaviour {
 		return tam;	
 	}
 
-	bool colocaFoso (Pos p){
-		return (matriz[p.i , p.j].terreno != eTerreno.agujero &&
-			matriz[p.i, p.j].contenido == eCadaver.nada && !(p.i == 0 && p.j == tam -1) );
-	}
     bool compruebaRango(Pos p , Pair<int,int> par) {
         return p.i + par.First < tam && p.i + par.First >= 0 &&
                     p.j + par.Second < tam && p.j + par.Second >= 0;
     }
 
 
-    public void colocaAsset(Transform t, eCadaver e) {
+	public void colocaHeroe(Transform t) {
         Transform childT;
-        if (e == eCadaver.sangre)
-        {
-            childT = assetsField.GetChild((int)e + sangreNum);
-            sangreNum++;
-        }
-        else {
-            childT = assetsField.GetChild((int)e);
-        }
-        childT.transform.position = t.position;
+        childT = assetsField.GetChild(1);
+		childT.transform.position = t.position;
     }
 
     void actualizaTablero() {
         for (int i = 0; i < tam * tam; i++) {
             GameObject tile = GameObject.Find(i.ToString());
             TilePR3 tileScript = tile.GetComponent<TilePR3>();
-            tileScript.actualiza(matriz[i % tam, i / tam]);
+			tileScript.actualiza(matriz[i % tam, i / tam].estado);
         }
-        sangreNum = 0;
     }
 
 	public int Seleccionado(Casilla estado){
-        if (eJuego == estadoJuego.cadaver)
-        {
-			matriz[estado.Posicion.i, estado.Posicion.j].contenido = eCadaver.cadaver;
-            foreach (Pair<int, int> dir in dirs)
-            {
-                if(compruebaRango(estado.Posicion,dir))
-					matriz[(int)estado.Posicion.i + dir.First, (int)estado.Posicion.j + dir.Second].contenido = eCadaver.sangre;
-            }
-            bool encontrado = false;
-            int rnd = -1;
-            while (!encontrado)
-            {
-                rnd = rn.Next(0, 8);
-                if (compruebaRango(estado.Posicion,dirs8[rnd]))
-                    encontrado = true;
-            }
-			matriz[(int)estado.Posicion.i + dirs8[rnd].First, (int)estado.Posicion.j + dirs8[rnd].Second].contenido = eCadaver.arma;
-            //Actualizar tablero
-            actualizaTablero();
-            eJuego = estadoJuego.agujero;
-			mensaje ("COLOCA LAS TRAMPAS ;)");
+		if (eJuego == estadoJuego.colocaheroe) {
+			matriz [estado.Posicion.i, estado.Posicion.j].heroe = true;
+			matriz [estado.Posicion.i, estado.Posicion.j].estado.terreno = eTerreno.heroe;
 
-        }
-		else if (eJuego == estadoJuego.agujero) {
-			if (colocaFoso(estado.Posicion)) {
-				matriz [estado.Posicion.i, estado.Posicion.j].terreno = eTerreno.agujero;
-				foreach (Pair<int, int> dir in dirs) {
-					if (compruebaRango (estado.Posicion, dir)
-					   && matriz [estado.Posicion.i + dir.First, estado.Posicion.j + dir.Second].terreno != eTerreno.agujero)
-						matriz [estado.Posicion.i + dir.First, estado.Posicion.j + dir.Second].terreno = eTerreno.barro;
-				}
-				//ActualizaTablero
-				actualizaTablero ();
+			//Actualizar tablero
+			actualizaTablero ();
+			eJuego = estadoJuego.coloca;
+			mensaje ("COLOCA LOS SOLDADOS Y LOS ZOMBIES ;)");
+
+		} else {
+			switch (estado.terreno) {
+			case eTerreno.zombi:
+				matriz [estado.Posicion.i, estado.Posicion.j].nZombie = 1;
+				matriz [estado.Posicion.i, estado.Posicion.j].estado.terreno = eTerreno.zombi;
+					nZombies++;
+					break;
+				case eTerreno.soldado:
+					nSoldados++;
+					matriz [estado.Posicion.i, estado.Posicion.j].soldado = true;
+					matriz [estado.Posicion.i, estado.Posicion.j].nZombie = 0;
+				matriz [estado.Posicion.i, estado.Posicion.j].estado.terreno = eTerreno.soldado;
+					if(nZombies!=0)
+						nZombies--;
+					break;
+				case eTerreno.normal:
+				matriz [estado.Posicion.i, estado.Posicion.j].soldado = false;
+				matriz [estado.Posicion.i, estado.Posicion.j].nZombie = 0;
+				matriz [estado.Posicion.i, estado.Posicion.j].estado.terreno = eTerreno.normal;
+					nSoldados--;
+					break;
 			}
-        }
+			mensaje ("nZombies: "+ nZombies + " nSoldados: "+ nSoldados);
+		}
+
         return 0;
 	}
 
     public void resuelve() {
-		if (estadoJuego.agujero == eJuego) {
-			Agente agent = new Agente ();
-			StartCoroutine (avanzaAgente (agent));
-			eJuego = estadoJuego.explora;
-			mensaje ("INSPECCIONANDO TERRENO");
-		}
+		eJuego = estadoJuego.simula;
 
+		for(int i = 0; i<tam; i++){
+			for (int j = 0; j < tam; j++) {
+				if (matriz [i, j].estado.terreno == eTerreno.zombi)
+					zombies.Add (matriz [i, j]);
+				else if (matriz [i, j].estado.terreno == eTerreno.soldado || matriz [i, j].estado.terreno == eTerreno.heroe) 
+					soldados.Add (matriz [i, j]);
+			}
+		}
     }
 
-    IEnumerator avanzaAgente(Agente p) {
+    /*IEnumerator avanzaAgente(Agente p) {
         while (!p.muerte && !p.completado)
         {
             Pos pos = p.IA_agente();
@@ -206,7 +212,9 @@ public class GameManager : MonoBehaviour {
             //Nos morimos
 			mensaje ("La próxima vez será! :(");
         }
-    }
+		yield return new WaitForSecondsRealtime(0.5f);
+
+    }*/
 	public void goHome(int[,]casillas, Pos posI){
 		Pos posD = new Pos( 0, tam - 1);
 		Resolutor resolutor = new Resolutor(casillas, posI, posD);
@@ -225,13 +233,78 @@ public class GameManager : MonoBehaviour {
 			yield return new WaitForSecondsRealtime (0.5f);
 		}
     }
+	public void turnoZombie (){
+		TilePR3 soldadocercano;
+		Pos posZombie = new Pos();
+		Pos posSoldado = new Pos();
+		int distancia = 100;
+		foreach (TilePR3 zom in zombies) {
+			posZombie = zom.estado.Posicion;
+
+			//BUSCO SOLDADO CERCANO
+			foreach (TilePR3 soldier in soldados) {
+				posSoldado = soldier.estado.Posicion;
+				int distAux = costManhatan (posZombie, posSoldado);
+				if (distancia > distAux) {
+					soldadocercano = soldier;
+					distancia = distAux;
+				}
+			}
+
+			//AVANZO Y COMPRUEBO SI LUCHA
+			Pair<int,int> movNecesario = new Pair<int, int>(posSoldado.i- posZombie.i, posSoldado.j- posZombie.j);
+			if (movNecesario.First == 0) {
+				if (movNecesario.Second < 0) {
+					//SE MUEVE UNO A LA IZQUIERDA
+					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j].nZombie --;
+					matriz[zom.estado.Posicion.i-1,zom.estado.Posicion.j].nZombie ++;
+					zom.estado.Posicion.i--;
+
+				} else {
+					//SE MUEVE A LA DERECHA
+					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j].nZombie --;
+					matriz[zom.estado.Posicion.i+1,zom.estado.Posicion.j].nZombie ++;
+					zom.estado.Posicion.i++;
+				}
+			}else
+				if (movNecesario.First < 0) {
+					//SE MUEVE UNO ARRIBA
+					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j].nZombie --;
+					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j-1].nZombie ++;
+					zom.estado.Posicion.j--;
+				}else{
+					//SE MUEVE ABAJO
+					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j].nZombie --;
+					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j+1].nZombie ++;
+					zom.estado.Posicion.j++;
+				}
+			actualizaTablero ();
+		}
+			
+	}
+	public int costManhatan(Pos ini, Pos fin){
+		return Mathf.Abs(ini.j - fin.j) + Mathf.Abs(ini.i - fin.i);
+	}
+
+	public void lucha (){
+		
+	}
+	public void turnoHeroe (){
+		
+	}
+
+	public void toogleluz(bool toggle){
+		luz = toggle;
+	}
 
 	public void mensaje(string Mensaje){
 		estadisticas.text = Mensaje;
 	}
+
     public void reinicia() {
        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
+
     public void Salir() {
         Application.Quit();
     }
