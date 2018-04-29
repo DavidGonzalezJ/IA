@@ -64,10 +64,10 @@ public class TilePR3 : MonoBehaviour {
 
         //Si puedo cambiar el estado de la casilla, lo cambio 
 		if (cambio) {
-			if (GameManager.Instance.nZombies == 20 && GameManager.Instance.nSoldados == 5) {
+			if (GameManager.Instance.nZombies == 20 && GameManager.Instance.nSoldados == 6) {
 				estado.terreno = eTerreno.normal;
 				change = false;
-			} else if (GameManager.Instance.nSoldados == 5 && aux == eTerreno.soldado) {
+			} else if (GameManager.Instance.nSoldados == 6 && aux == eTerreno.soldado) {
 				estado.terreno = eTerreno.normal;
 				change = false;
 			}else if(GameManager.Instance.nZombies == 20 && aux == eTerreno.zombi) {

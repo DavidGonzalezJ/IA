@@ -53,11 +53,12 @@ public class GameManager : MonoBehaviour {
 	private int tam = 10;
 	TilePR3 [,] matriz;
 	Transform Piezas;
-	public int nZombies, nSoldados;
+	public int nZombies, nSoldados = 1;
 	public bool luz = true;
     int contador = 0;
 	List<TilePR3> zombies = new List<TilePR3>();
 	List<TilePR3> soldados = new List<TilePR3>();
+    List<TilePR3> luchas = new List<TilePR3>();
 
 	public void getMatriz(ref TilePR3[,] m) {
         for (int i = 0; i < tam; i++)
@@ -104,8 +105,10 @@ public class GameManager : MonoBehaviour {
 		if (eJuego == estadoJuego.simula && contador%60 == 0) {
 			turnoZombie ();
 			lucha ();
+            actualizaZombisSoldados();
 			turnoHeroe ();
 			lucha ();
+            actualizaZombisSoldados();
             contador = 0;
 		}
         if (Input.GetKey("escape"))
@@ -180,17 +183,23 @@ public class GameManager : MonoBehaviour {
 
     public void resuelve() {
 		eJuego = estadoJuego.simula;
-
-		for(int i = 0; i<tam; i++){
-			for (int j = 0; j < tam; j++) {
-				if (matriz [i, j].estado.terreno == eTerreno.zombi)
-					zombies.Add (matriz [i, j]);
-				else if (matriz [i, j].estado.terreno == eTerreno.soldado || matriz [i, j].estado.terreno == eTerreno.heroe) 
-					soldados.Add (matriz [i, j]);
-			}
-		}
+        //actualizaZombisSoldados();
     }
 
+    public void actualizaZombisSoldados() {
+        zombies.Clear();
+        soldados.Clear();
+        for (int i = 0; i < tam; i++)
+        {
+            for (int j = 0; j < tam; j++)
+            {
+                if (matriz[i, j].estado.terreno == eTerreno.zombi)
+                    zombies.Add(matriz[i, j]);
+                else if (matriz[i, j].estado.terreno == eTerreno.soldado || matriz[i, j].estado.terreno == eTerreno.heroe)
+                    soldados.Add(matriz[i, j]);
+            }
+        }
+    }
     /*IEnumerator avanzaAgente(Agente p) {
         while (!p.muerte && !p.completado)
         {
@@ -254,57 +263,80 @@ public class GameManager : MonoBehaviour {
             distancia = 100;
 			//AVANZO Y COMPRUEBO SI LUCHA
 			Pair<int,int> movNecesario = new Pair<int, int>(soldadocercano.Posicion.i- posZombie.i, soldadocercano.Posicion.j - posZombie.j);
-            if(movNecesario.First != 0 || movNecesario.Second != 0)
-			if (movNecesario.Second == 0) {
-				if (movNecesario.First < 0) {
-					//SE MUEVE UNO A LA IZQUIERDA
-					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j].nZombie --;
-					matriz[zom.estado.Posicion.i-1,zom.estado.Posicion.j].nZombie ++;
+            if (movNecesario.First != 0 || movNecesario.Second != 0)
+                if (movNecesario.Second == 0)
+                {
+                    if (movNecesario.First < 0)
+                    {
+                        //SE MUEVE UNO A LA IZQUIERDA
+                        matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].nZombie--;
+                        matriz[zom.estado.Posicion.i - 1, zom.estado.Posicion.j].nZombie++;
                         if (matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].nZombie == 0)
                             matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].estado.terreno = eTerreno.normal;
                         if (matriz[zom.estado.Posicion.i - 1, zom.estado.Posicion.j].heroe || matriz[zom.estado.Posicion.i - 1, zom.estado.Posicion.j].soldado)
+                        {
                             matriz[zom.estado.Posicion.i - 1, zom.estado.Posicion.j].estado.terreno = eTerreno.lucha;
+                            luchas.Add(matriz[zom.estado.Posicion.i - 1, zom.estado.Posicion.j]);
+                        }
                         else
                             matriz[zom.estado.Posicion.i - 1, zom.estado.Posicion.j].estado.terreno = eTerreno.zombi;
                         zom.estado.Posicion.i--;
 
-				} else {
-					//SE MUEVE A LA DERECHA
-					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j].nZombie --;
-					matriz[zom.estado.Posicion.i+1,zom.estado.Posicion.j].nZombie ++;
+                    }
+                    else
+                    {
+                        //SE MUEVE A LA DERECHA
+                        matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].nZombie--;
+                        matriz[zom.estado.Posicion.i + 1, zom.estado.Posicion.j].nZombie++;
                         if (matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].nZombie == 0)
                             matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].estado.terreno = eTerreno.normal;
                         if (matriz[zom.estado.Posicion.i + 1, zom.estado.Posicion.j].heroe || matriz[zom.estado.Posicion.i + 1, zom.estado.Posicion.j].soldado)
+                        {
                             matriz[zom.estado.Posicion.i + 1, zom.estado.Posicion.j].estado.terreno = eTerreno.lucha;
+                            luchas.Add(matriz[zom.estado.Posicion.i + 1, zom.estado.Posicion.j]);
+                        }
                         else
                             matriz[zom.estado.Posicion.i + 1, zom.estado.Posicion.j].estado.terreno = eTerreno.zombi;
-					zom.estado.Posicion.i++;
+                        zom.estado.Posicion.i++;
                     }
-			}else
-				if (movNecesario.Second < 0) {
-					//SE MUEVE UNO ARRIBA
-					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j].nZombie --;
-					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j-1].nZombie ++;
+                }
+                else
+                    if (movNecesario.Second < 0)
+                {
+                    //SE MUEVE UNO ARRIBA
+                    matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].nZombie--;
+                    matriz[zom.estado.Posicion.i, zom.estado.Posicion.j - 1].nZombie++;
                     if (matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].nZombie == 0)
                         matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].estado.terreno = eTerreno.normal;
-                    if (matriz[zom.estado.Posicion.i, zom.estado.Posicion.j-1].heroe || matriz[zom.estado.Posicion.i, zom.estado.Posicion.j-1].soldado)
-                        matriz[zom.estado.Posicion.i, zom.estado.Posicion.j-1].estado.terreno = eTerreno.lucha;
+                    if (matriz[zom.estado.Posicion.i, zom.estado.Posicion.j - 1].heroe || matriz[zom.estado.Posicion.i, zom.estado.Posicion.j - 1].soldado)
+                    {
+                        matriz[zom.estado.Posicion.i, zom.estado.Posicion.j - 1].estado.terreno = eTerreno.lucha;
+                        luchas.Add(matriz[zom.estado.Posicion.i, zom.estado.Posicion.j - 1]);
+                    }
                     else
-                        matriz[zom.estado.Posicion.i, zom.estado.Posicion.j-1].estado.terreno = eTerreno.zombi;
-					zom.estado.Posicion.j--;
+                        matriz[zom.estado.Posicion.i, zom.estado.Posicion.j - 1].estado.terreno = eTerreno.zombi;
+                    zom.estado.Posicion.j--;
                 }
-                else{
-					//SE MUEVE ABAJO
-					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j].nZombie --;
-					matriz[zom.estado.Posicion.i,zom.estado.Posicion.j+1].nZombie ++;
+                else
+                {
+                    //SE MUEVE ABAJO
+                    matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].nZombie--;
+                    matriz[zom.estado.Posicion.i, zom.estado.Posicion.j + 1].nZombie++;
                     if (matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].nZombie == 0)
                         matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].estado.terreno = eTerreno.normal;
                     if (matriz[zom.estado.Posicion.i, zom.estado.Posicion.j + 1].heroe || matriz[zom.estado.Posicion.i, zom.estado.Posicion.j + 1].soldado)
+                    {
                         matriz[zom.estado.Posicion.i, zom.estado.Posicion.j + 1].estado.terreno = eTerreno.lucha;
+                        luchas.Add(matriz[zom.estado.Posicion.i, zom.estado.Posicion.j + 1]);
+                    }
                     else
                         matriz[zom.estado.Posicion.i, zom.estado.Posicion.j + 1].estado.terreno = eTerreno.zombi;
-					zom.estado.Posicion.j++;
+                    zom.estado.Posicion.j++;
                 }
+            //HAY LUCHAAAA
+            else {
+
+            }
 			actualizaTablero ();
 		}
 			
@@ -313,15 +345,135 @@ public class GameManager : MonoBehaviour {
 		return Mathf.Abs(ini.j - fin.j) + Mathf.Abs(ini.i - fin.i);
 	}
 
-	public void lucha (){
-		/*El soldado gana el 90% de las veces si quedan 3 o más
+	public bool lucha (){
+        /*El soldado gana el 90% de las veces si quedan 3 o más
 		soldados en juego, el 50% si sólo quedan 2, y el 20% si es
 		el héroe y ya se encuentra solo
 		■ Si no hay luz, los soldados tienen un -10%
 		Los zombis pueden solaparse entre sí (se les combate a todos, uno por uno)
 		y el héroe puede solaparse con sus aliados: si justo entonces un zombi cae en
 		esa casilla, este combatirá primero con el aliado y luego con el héroe*/
+        foreach (TilePR3 fight in luchas) {
+            int r = rn.Next(0,10);
+            int prob;
+            if (luz) prob = 0;
+            else prob = -1;
+            //3 o mas soldados
+            if (nSoldados >= 3) {
+                //Gana el soldado
+                if (r < 9 + prob)
+                {
+                    nZombies--;
+                    matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].nZombie--;
+                    if (fight.nZombie == 0 && fight.soldado)
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.soldado;
+                    else if (fight.nZombie == 0 && !fight.soldado)
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.heroe;
+                }
+                //Gana el zombi
+                else {
+                    nSoldados--;
+                    if (fight.heroe && !fight.soldado)//fin del juego
+                        return false;
+                    else if (fight.soldado && !fight.heroe)
+                    {
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].soldado = false;
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.zombi;
+                    }
+                    else if (fight.soldado && fight.heroe)
+                    {
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].soldado = false;
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.lucha;
+                    }
+                    else {
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].soldado = false;
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].heroe = false;
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.zombi;
+                    }
+                }
+            }
+            //2 soldados
+            else if (nSoldados == 2) {
+                //Gana el soldado
+                if (r < 5 + prob)
+                {
+                    nZombies--;
+                    matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].nZombie--;
+                    if (fight.nZombie == 0 && fight.soldado)
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.soldado;
+                    else if (fight.nZombie == 0 && !fight.soldado)
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.heroe;
+                }
+                //Gana el zombi
+                else
+                {
+                    nSoldados--;
+                    if (fight.heroe && !fight.soldado)//fin del juego
+                        return false;
+                    else if (fight.soldado && !fight.heroe)
+                    {
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].soldado = false;
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.zombi;
+                    }
+                    else if (fight.soldado && fight.heroe)
+                    {
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].soldado = false;
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.lucha;
+                    }
+                    else
+                    {
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].soldado = false;
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].heroe = false;
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.zombi;
+                    }
+                }
 
+            }
+            //Solo el heroe
+            else if (nSoldados == 1) {
+                //Gana el soldado
+                if (r < 2 + prob)
+                {
+                    nZombies--;
+                    matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].nZombie--;
+                    if (fight.nZombie == 0 && fight.soldado)
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.soldado;
+                    else if (fight.nZombie == 0 && !fight.soldado)
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.heroe;
+                }
+                //Gana el zombi
+                else
+                {
+                    nSoldados--;
+                    if (fight.heroe && !fight.soldado)//fin del juego
+                        return false;
+                    else if (fight.soldado && !fight.heroe)
+                    {
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].soldado = false;
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.zombi;
+                    }
+                    else if (fight.soldado && fight.heroe)
+                    {
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].soldado = false;
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.lucha;
+                    }
+                    else
+                    {
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].soldado = false;
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].heroe = false;
+                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.zombi;
+                    }
+                }
+            }
+            //No hay soldados (éste es por si mas de un zombi cae a la vez en la misma casilla)
+            else {
+                matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].soldado = false;
+                matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].heroe = false;
+                matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.zombi;
+            }
+        }
+        luchas.Clear();
+        return true;
 	}
 	public void turnoHeroe (){
 		
