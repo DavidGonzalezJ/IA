@@ -8,9 +8,12 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System;
 using UnityEngine.SceneManagement;
+using System.Linq;
+using Jackyjjc.Bayesianet;
 
 public enum Seleccion{ none, R, G, B};
 public enum estadoJuego { colocaheroe, coloca, simula};
+public enum estadoHeroe {normal,huir};
 
 public class Pair<T, U>
 {
@@ -43,7 +46,8 @@ public class GameManager : MonoBehaviour {
     //Parte Gráfica
     [SerializeField]
     private Transform assetsField;
-	public UnityEngine.UI.Text estadisticas;
+	public UnityEngine.UI.Text estadisticas, Resultado;
+
 
 	estadoJuego eJuego = estadoJuego.colocaheroe;
 
@@ -58,10 +62,18 @@ public class GameManager : MonoBehaviour {
     bool finDelJuego = false;
     turno turn = turno.turnoZombie;
     int contador = 0;
+	int puntuacion=0;
+
 	List<TilePR3> zombies = new List<TilePR3>();
 	List<TilePR3> soldados = new List<TilePR3>();
     List<TilePR3> luchas = new List<TilePR3>();
 
+	estadoHeroe heroeEstado = estadoHeroe.normal;
+	Pos heroe;
+
+	public void addTile(int i, int j, TilePR3 tile){
+		matriz [i, j] = tile;
+	}
 	public void getMatriz(ref TilePR3[,] m) {
         for (int i = 0; i < tam; i++)
             for (int j = 0; j < tam; j++) {
@@ -79,7 +91,6 @@ public class GameManager : MonoBehaviour {
 	}
 
 	//Esto es para instanciar al manager desde cualquier script
-	//EJ:PuzzleManager.Instance.Seleccionado()
 	private static GameManager instance;
 	public static GameManager Instance{
 		get{
@@ -91,14 +102,10 @@ public class GameManager : MonoBehaviour {
 	}
 
 	// Use this for initialization
-	void Start () {
+	void Awake () {
+		heroe = new Pos ();
 		matriz = new TilePR3[tam,tam];
-        for (int i = 0; i < tam; i++)
-            for (int j = 0; j < tam; j++)
-            {
-				matriz[i, j] = new TilePR3();
-				matriz[i, j].estado.Posicion.Set(i, j);
-            }
+		StartBayesian ();
     }
 
     enum turno { turnoZombie, lucha1, turnoHeroe, lucha2};
@@ -106,23 +113,31 @@ public class GameManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         contador++;
-        if (finDelJuego) Debug.Log("FINAAAAL");
-		if (eJuego == estadoJuego.simula && contador%60 == 0 && !finDelJuego) {
-            if (turn == turno.turnoZombie)
-            {
-                turnoZombie();
-                turn = turno.lucha1;
-            }
-            else if (turn == turno.lucha1)
-            {
-                lucha();
-                actualizaZombisSoldados();
-                turn = turno.turnoZombie;
-            }
-            //turnoHeroe ();
-            //lucha ();
-            //actualizaZombisSoldados();
+		if (finDelJuego) {
+			mensaje ("FIN DEL JUEGO");
+		}
+
+		if (eJuego == estadoJuego.simula && contador % 20 == 0 && !finDelJuego) {
+			if (turn == turno.turnoZombie) {
+				turnoZombie ();
+				turn = turno.lucha1;
+			} else if (turn == turno.lucha1) {
+				lucha ();
+				actualizaZombisSoldados ();
+				turn = turno.turnoHeroe;
+			} else if (turn == turno.turnoHeroe) {
+				turnoHeroe ();
+				turn = turno.lucha2;
+			} else if (turn == turno.lucha2) {
+				lucha ();
+				actualizaZombisSoldados ();
+				turn = turno.turnoZombie;
+			}
+			if (nZombies == 0) {
+				heroeEstado = estadoHeroe.huir;
+			}
             mensaje("nZombies: " + nZombies + " nSoldados: " + nSoldados);
+			Resultado.text =  ("Resultado: " + puntuacion);
             contador = 0;
 		}
         if (Input.GetKey("escape"))
@@ -143,10 +158,11 @@ public class GameManager : MonoBehaviour {
     }
 
 
-	public void colocaHeroe(Transform t) {
+	public void colocaHeroe(Transform t, Pos posicion) {
         Transform childT;
         childT = assetsField.GetChild(1);
 		childT.transform.position = t.position;
+		heroe = posicion;
     }
 
     void actualizaTablero() {
@@ -154,6 +170,9 @@ public class GameManager : MonoBehaviour {
             GameObject tile = GameObject.Find(i.ToString());
             TilePR3 tileScript = tile.GetComponent<TilePR3>();
 			tileScript.actualiza(matriz[i % tam, i / tam].estado);
+			if (matriz[i % tam, i / tam].heroe) {
+				tileScript.heroeColoc();
+			}
         }
     }
 	public void changesoldados(int a){
@@ -170,7 +189,7 @@ public class GameManager : MonoBehaviour {
 			//Actualizar tablero
 			actualizaTablero ();
 			eJuego = estadoJuego.coloca;
-			mensaje ("COLOCA LOS SOLDADOS Y LOS ZOMBIES ;)");
+			mensaje ("COLOCA SOLDADOS Y ZOMBIES");
 
 		} else {
 			switch (estado.terreno) {
@@ -189,16 +208,11 @@ public class GameManager : MonoBehaviour {
 				matriz [estado.Posicion.i, estado.Posicion.j].estado.terreno = eTerreno.normal;
 				break;
 			}
-			mensaje ("nZombies: "+ nZombies + " nSoldados: "+ nSoldados);
+			mensaje ("nZombies: "+ nZombies + "    nSoldados: "+ nSoldados);
 		}
 
         return 0;
 	}
-
-    public void resuelve() {
-		eJuego = estadoJuego.simula;
-        //actualizaZombisSoldados();
-    }
 
     public void actualizaZombisSoldados() {
         zombies.Clear();
@@ -214,49 +228,7 @@ public class GameManager : MonoBehaviour {
             }
         }
     }
-    /*IEnumerator avanzaAgente(Agente p) {
-        while (!p.muerte && !p.completado)
-        {
-            Pos pos = p.IA_agente();
-            if (pos != null)
-            {
-                Transform childT;
-                childT = assetsField.GetChild(7);
-                childT.transform.position = Piezas.GetChild(pos.j * tam + pos.i).position;
-                Debug.Log(pos.i + " " + pos.j);
-            }
-            yield return new WaitForSecondsRealtime(0.5f);
-        }
-        if (p.completado) {
-			mensaje ("VOLVEMOS A CASA");
-            //Llamamos a la vuelta a casa
-			goHome(p.dameMatrizAgente(), p.dameCasillaAgente());
-        }
-        if (p.muerte) {
-            //Nos morimos
-			mensaje ("La próxima vez será! :(");
-        }
-		yield return new WaitForSecondsRealtime(0.5f);
 
-    }*/
-	public void goHome(int[,]casillas, Pos posI){
-		Pos posD = new Pos( 0, tam - 1);
-		Resolutor resolutor = new Resolutor(casillas, posI, posD);
-		StartCoroutine(home(resolutor.camino, posI , posD));
-	}
-
-	IEnumerator home(List<Pos> camino, Pos origen, Pos destino) {
-			//Mirar camino mover bicho
-		for (int i = 1; i <= camino.Count-1; i++) {
-			Debug.Log (camino [i].i + " " + camino [i].j);
-			Transform childT;
-			childT = assetsField.GetChild (7);
-			Transform aux = Piezas.GetChild (camino [i].j * tam + camino [i].i);
-			if(aux != null)
-				childT.transform.position = aux.position;
-			yield return new WaitForSecondsRealtime (0.5f);
-		}
-    }
 	public void turnoZombie (){
 		Casilla soldadocercano = new Casilla();
 		Pos posZombie = new Pos();
@@ -294,7 +266,6 @@ public class GameManager : MonoBehaviour {
                         }
                         else
                             matriz[zom.estado.Posicion.i - 1, zom.estado.Posicion.j].estado.terreno = eTerreno.zombi;
-                        //zom.estado.Posicion.i--;
 
                     }
                     else
@@ -311,7 +282,6 @@ public class GameManager : MonoBehaviour {
                         }
                         else
                             matriz[zom.estado.Posicion.i + 1, zom.estado.Posicion.j].estado.terreno = eTerreno.zombi;
-                        //zom.estado.Posicion.i++;
                     }
                 }
                 else
@@ -332,7 +302,6 @@ public class GameManager : MonoBehaviour {
                         }
                         else
                             matriz[zom.estado.Posicion.i, zom.estado.Posicion.j - 1].estado.terreno = eTerreno.zombi;
-                        //zom.estado.Posicion.j--;
                     }
                     else
                     {
@@ -348,15 +317,12 @@ public class GameManager : MonoBehaviour {
                         }
                         else
                             matriz[zom.estado.Posicion.i, zom.estado.Posicion.j + 1].estado.terreno = eTerreno.zombi;
-                        //zom.estado.Posicion.j++;
                     }
                 }
             //HAY LUCHAAAA
             else
-            {
                 matriz[zom.estado.Posicion.i, zom.estado.Posicion.j].estado.terreno = eTerreno.lucha;
-                //luchas.Add(matriz[zom.estado.Posicion.i, zom.estado.Posicion.j]);
-            }
+            
 			actualizaTablero ();
 		}
 			
@@ -366,13 +332,7 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public bool lucha (){
-        /*El soldado gana el 90% de las veces si quedan 3 o más
-		soldados en juego, el 50% si sólo quedan 2, y el 20% si es
-		el héroe y ya se encuentra solo
-		■ Si no hay luz, los soldados tienen un -10%
-		Los zombis pueden solaparse entre sí (se les combate a todos, uno por uno)
-		y el héroe puede solaparse con sus aliados: si justo entonces un zombi cae en
-		esa casilla, este combatirá primero con el aliado y luego con el héroe*/
+        
         foreach (TilePR3 fight in luchas) {
             int r = rn.Next(0,10);
             int prob;
@@ -383,18 +343,23 @@ public class GameManager : MonoBehaviour {
                 //Gana el soldado
                 if (r < 9 + prob)
                 {
+					puntuacion++;
                     nZombies--;
                     matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].nZombie--;
-                    if (fight.nZombie == 0 && fight.soldado)
-                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.soldado;
-                    else if (fight.nZombie == 0 && !fight.soldado)
-                        matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.normal;
+					if (fight.nZombie == 0 && fight.soldado) {
+						matriz [fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.soldado;
+					} else if (fight.nZombie == 0 && !fight.soldado) {
+						matriz [fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.normal;
+					}
+					if(!fight.soldado)puntuacion += 4;
                 }
                 //Gana el zombi
                 else {
                     nSoldados--;
+					puntuacion -= 10;
                     if (fight.heroe && !fight.soldado)
                     {
+						puntuacion -= 40;
                         finDelJuego = true;
                         return false;
                     }
@@ -427,13 +392,17 @@ public class GameManager : MonoBehaviour {
                         matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.soldado;
                     else if (fight.nZombie == 0 && !fight.soldado)
                         matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.normal;
+					puntuacion++;
+					if(!fight.soldado)puntuacion += 4;
                 }
                 //Gana el zombi
                 else
                 {
+					puntuacion -= 10;
                     nSoldados--;
                     if (fight.heroe && !fight.soldado)
                     {
+						puntuacion -= 40;
                         finDelJuego = true;
                         return false;
                     }
@@ -467,13 +436,17 @@ public class GameManager : MonoBehaviour {
                         matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.soldado;
                     else if (fight.nZombie == 0 && !fight.soldado)
                         matriz[fight.estado.Posicion.i, fight.estado.Posicion.j].estado.terreno = eTerreno.normal;
+					puntuacion++;
+					if(!fight.soldado)puntuacion += 4;
                 }
                 //Gana el zombi
                 else
                 {
+					puntuacion -= 10;
                     nSoldados--;
                     if (fight.heroe && !fight.soldado)
                     {
+						puntuacion -= 40;
                         finDelJuego = true;
                         return false;
                     }
@@ -508,9 +481,76 @@ public class GameManager : MonoBehaviour {
         return true;
 	}
 	public void turnoHeroe (){
-		
+		if (estadoHeroe.normal == heroeEstado) {
+			int decision = MakeDecision ();
+			if (decision == 0) {//Matar
+				matar();
+			} else if (decision == 1) {// Huir
+				heroeEstado = estadoHeroe.huir;
+				print ("huir");
+			}
+		} else
+			goHome ();
 	}
+	public void matar(){
 
+		int distancia = 100;
+		Pos posZombie= new Pos();
+		Casilla zombieCercano = new Casilla(); 
+
+			//BUSCO SOLDADO CERCANO
+		foreach (TilePR3 zom in zombies) {
+			posZombie = zom.estado.Posicion;
+			int distAux = costManhatan (posZombie, heroe);
+			if (distancia > distAux) {
+				zombieCercano = zom.estado;
+				distancia = distAux;
+			}
+		}
+		//AVANZO Y COMPRUEBO SI LUCHA
+		Pair<int,int> movNecesario = new Pair<int, int>(zombieCercano.Posicion.i - heroe.i, zombieCercano.Posicion.j - heroe.j);
+		if(mueveHeroe (movNecesario))
+			
+		actualizaTablero ();
+	}
+	public void goHome(){
+		Pair<int,int> movNecesario = new Pair<int, int>(0 - heroe.i, 9 - heroe.j);
+		finDelJuego = mueveHeroe (movNecesario);
+		actualizaTablero ();
+	}
+	public bool mueveHeroe(Pair<int,int> movNecesario){
+		if (movNecesario.First != 0 || movNecesario.Second != 0) {
+			matriz [heroe.i, heroe.j].heroe = false;
+
+			if (movNecesario.Second == 0) {
+				if (movNecesario.First < 0) {
+					//SE MUEVE UNO A LA IZQUIERDA
+					matriz [heroe.i - 1, heroe.j].heroe = true;
+					heroe.i = heroe.i - 1;
+				} else {
+					//SE MUEVE A LA DERECHA
+					matriz [heroe.i + 1, heroe.j].heroe = true;
+					heroe.i = heroe.i +1;
+				}
+			} else {
+				if (movNecesario.Second < 0) {
+					//SE MUEVE UNO ARRIBA
+					matriz [heroe.i, heroe.j - 1].heroe = true;
+					heroe.j  = heroe.j -1;
+
+				} else {
+					//SE MUEVE ABAJO
+					matriz [heroe.i, heroe.j + 1].heroe = true;
+					heroe.j = heroe.j+1;
+				}
+			}
+			return false;
+		} else
+			return true;
+	}
+	public void resuelve() {
+		eJuego = estadoJuego.simula;
+	}
 	public void toogleluz(bool toggle){
 		luz = toggle;
 	}
@@ -526,4 +566,134 @@ public class GameManager : MonoBehaviour {
     public void Salir() {
         Application.Quit();
     }
+
+
+
+	///////////////////////////////////////////////////
+	/////////////// BAYESIAN RED /////////////////////
+	/////////////////////////////////////////////////
+	private VariableElimination ve;
+	// Use this for initialization
+	void StartBayesian () {
+		string networkJson = (Resources.Load("enemy_logic_json") as TextAsset).text;
+		ve = new VariableElimination(new BayesianJsonParser().Parse(networkJson));
+	}
+
+	public Text decisionText;
+	public Text probabilityText;
+
+	public int MakeDecision()
+	{
+		//////SITUACION////////////
+
+		// Observaciones Situación
+		List<string> observations = new List<string> {
+			"CantidadAliados=" + GetAllyAmount(),
+			"CantidadEnemigos=" + GetEnemyAmount(),
+		};
+
+		// Distribucion de la situacion
+		double[] Distribution = ve.Infer("Situacion", observations);
+		double SituacionI = ve.PickOne(Distribution);
+		string Situacion = GetSituacion(SituacionI);
+
+
+
+		//////DESTREZA////////////
+		// Observaciones Destreza
+		List<string> observationsSkill = new List<string> {
+			"Luz=" + GetLight(),
+			"CantidadAliados=" + GetAllyAmount(),
+		};
+
+		//Se mete en las observaciones la destreza
+		double[] SkillDistribution = ve.Infer("Destreza", observationsSkill);
+		double skillI = ve.PickOne (SkillDistribution);
+		string skill = GetSkill (skillI);
+
+
+
+		//////ESTADO////////////
+		// Observaciones ESTADO
+		List<string> observationsStateA = new List<string> {
+			"Situacion="+ Situacion,
+			"Destreza=" + skill,
+			"Accion=Avanzar"
+		};
+		//Se mete en las observaciones la ESTADO
+		double[] DistAvanzar = ve.Infer("Estado", observationsStateA);
+
+		List<string> observationsStateR = new List<string> {
+			"Situacion="+ Situacion,
+			"Destreza=" + skill,
+			"Accion=Retroceder"
+		};
+		double[] DistRetroceder = ve.Infer("Estado", observationsStateR);
+
+
+		List<string> observationsStateW = new List<string> {
+			"Situacion="+ Situacion,
+			"Destreza=" + skill,
+			"Accion=Esperar"
+		};
+		double[] DistEsperar = ve.Infer("Estado", observationsStateW);
+
+
+		double Avanzar = DistAvanzar[0] * 1.0 + DistAvanzar[1] * 0.7 + DistAvanzar[2] * 0.0;
+		double Retroceder = DistRetroceder[0] * 1.0 + DistRetroceder[1] * 0.7 + DistRetroceder[2] * 0.0;
+		double Esperar = DistEsperar[0] * 1.0 + DistEsperar[1] * 0.7+ DistEsperar[2] * 0.0;
+
+		double decision = System.Math.Max(Avanzar,Retroceder);
+		decision = System.Math.Max (decision, Esperar);
+
+		if (Avanzar == decision)
+			return 0;
+		else if (Retroceder == decision)
+			return 1;
+		else
+			return 2;
+	}
+
+	private string GetSkill(double Index){
+		string result="";
+		if(Index == 0)
+			result = "Buena";
+		else if(Index== 1.0)
+			result = "Regular";
+		else if(Index ==2.0)
+			result = "Mala";
+		return result;
+	}
+	private string GetSituacion(double Index){
+		string result = " ";
+		if(Index == 0)
+			result = "muchoZombie";
+		else if(Index == 1)
+			result = "muchoAliado";
+		else if(Index == 2)
+			result = "neutral";
+		return result;
+	}
+	// you can map continuous values into discrete ones
+	private string GetEnemyAmount()
+	{
+		string result;
+		if (nZombies == 0) result = "Ninguno";
+		else if (nZombies <= 5) result = "Pocos";
+		else result = "Muchos";
+		return result;
+	}
+
+	private string GetLight()
+	{
+		return luz.ToString ();
+	}
+	private string GetAllyAmount()
+	{
+		string result;
+		if (nSoldados == 1) result = "Ninguno";
+		else if (nSoldados == 2) result = "Uno";
+		else result = "Mas";
+		return result;
+	}
 }

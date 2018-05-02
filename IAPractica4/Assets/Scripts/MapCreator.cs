@@ -33,10 +33,11 @@ public class MapCreator : MonoBehaviour {
     private Transform assetsField;
     [SerializeField]
     private Transform agentField;
+	TilePR3 [,] matriz;
 
 
     // Use this for initialization
-    void Awake () {
+    void Start () {
     	tam = GameManager.Instance.dameTam();
 		GridLayoutGroup Grid = mapField.GetComponent<GridLayoutGroup>();
 
@@ -53,9 +54,11 @@ public class MapCreator : MonoBehaviour {
                 TilePR3 tile = buttonn.GetComponent<TilePR3>();
                 if (tile == null) Debug.Log("No encontrado tile");
                 else tile.estado.Posicion.Set( i % tam, i / tam);
+				GameManager.Instance.addTile(i%tam, i/tam, tile);
             }
         }
 	}
+
 	// Update is called once per frame
 	void Update () {
 

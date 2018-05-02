@@ -1,0 +1,94 @@
+{
+    "nodes": [
+       
+        {
+            "name": "CantidadEnemigos",
+            "domain": [ "Ninguno", "Pocos", "Muchos" ],
+            "parents": [ ],
+            "values": [ 0.33, 0.33, 0.34 ]
+        },
+        {
+            "name": "Accion",
+            "domain": [ "Avanzar", "Retroceder", "Esperar" ],
+            "parents": [ ],
+            "values": [ 0.33, 0.33, 0.34 ]
+        },
+        {
+            "name": "Luz",
+            "domain": ["True", "False"],
+            "parents": [],
+            "values": [0.50, 0.50]
+        },
+        {
+            "name": "CantidadAliados",
+            "domain": [ "Ninguno", "Uno", "Mas" ],
+            "parents": [ ],
+            "values": [ 0.33, 0.33, 0.34 ]
+        }, 
+         {
+            "name": "Situacion",
+            "domain": [ "muchoZombie", "muchoAliado", "neutral" ],
+            "parents": ["CantidadEnemigos", "CantidadAliados" ],
+            "values": [ 
+            0.00, 0.00, 1.00,
+            0.00, 1.00, 0.00,
+            0.00, 1.00, 0.00, 
+            1.00, 0.00, 0.00,
+            0.20, 0.20, 0.60,
+            0.10, 0.40, 0.50,
+            1.00, 0.00, 0.00,
+            0.90, 0.00, 0.10,
+            0.70, 0.00, 0.30
+
+            ]
+        },
+          {
+            "name": "Destreza",
+            "domain": [ "Buena", "Regular", "Mala" ],
+            "parents": ["Luz", "CantidadAliados" ],
+            "values": [ 
+            0.00, 0.10, 0.90,
+            0.00, 1.00, 0.00,
+            1.00, 0.00, 0.00, 
+            0.00, 0.00, 1.00,
+            0.00, 0.90, 0.10,
+            0.90, 0.10, 0.00
+
+            ]
+        },
+        {
+            "name": "Estado",
+            "domain": [ "Matar", "Refugiarse", "Morir" ],
+            "parents": [ "Situacion", "Destreza", "Accion" ],
+            "values": [
+                0.7, 0.1, 0.2,
+                0.1, 0.8, 0.1,
+                0.5, 0.4, 0.1,
+                0.5, 0.1, 0.4,
+                0.1, 0.7, 0.2,
+                0.4, 0.3, 0.3,
+                0.1, 0.2, 0.3,
+                0.1, 0.6, 0.3,
+                0.2, 0.4, 0.4,
+                0.8, 0.1, 0.1,
+                0.2, 0.5, 0.3,
+                0.6, 0.2, 0.2,
+                0.4, 0.3, 0.3,
+                0.1, 0.4, 0.3,
+                0.3, 0.3, 0.4,
+                0.2, 0.1, 0.7,
+                0.1, 0.4, 0.5,
+                0.1, 0.3, 0.6,
+                0.4, 0.2, 0.4,
+                0.5, 0.2, 0.3,
+                0.6, 0.1, 0.3,
+                0.3, 0.3, 0.4,
+                0.1, 0.6, 0.3,
+                0.6, 0.1, 0.3,
+                0.2, 0.3, 0.5,
+                0.1, 0.5, 0.4,
+                0.1, 0.4, 0.5
+            ]
+        }
+    ]
+}

@@ -109,8 +109,12 @@ public class TilePR3 : MonoBehaviour {
     public void actualiza(Casilla c) {
         estado.terreno = c.terreno;
 		if (estado.terreno == eTerreno.heroe) {
-			GameManager.Instance.colocaHeroe(this.transform);
+			GameManager.Instance.colocaHeroe(this.transform, estado.Posicion);
 		}else
 			spriteCasilla.sprite = Imagenes[(int)estado.terreno];
     }
+	public void heroeColoc(){
+		if(heroe)
+			GameManager.Instance.colocaHeroe(this.transform, estado.Posicion);
+	}
 }
